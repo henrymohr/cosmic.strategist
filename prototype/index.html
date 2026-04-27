@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08081A">
+  <title>CosmicMind</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ── Onboarding ──────────────────────────────────────────────────────── -->
+  <div id="onboarding">
+    <canvas id="onboarding-canvas" class="starfield"></canvas>
+
+    <div class="ob-inner">
+      <div class="ob-logo">
+        <div class="ob-logo-symbol">✦</div>
+        <h1>CosmicMind</h1>
+        <p>Your personal astrologer</p>
+      </div>
+
+      <form class="ob-form" id="onboarding-form">
+        <h2>Read your chart</h2>
+        <p>Enter your birth details so Celestia can read the sky specifically for you. The more accurate your time and place, the deeper the reading.</p>
+
+        <div class="field-group">
+          <label for="ob-name">Your Name</label>
+          <input type="text" id="ob-name" placeholder="How shall I call you?" autocomplete="given-name" required>
+        </div>
+
+        <div class="field-group">
+          <label for="ob-date">Date of Birth</label>
+          <input type="date" id="ob-date" required>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="ob-time">Birth Time</label>
+            <input type="time" id="ob-time" placeholder="00:00">
+          </div>
+          <div class="field-group">
+            <label for="ob-place">Birth Place</label>
+            <input type="text" id="ob-place" placeholder="City, Country">
+          </div>
+        </div>
+
+        <p class="ob-note">Birth time and place unlock your Rising sign and house positions. Leave blank if unknown — the chart will still work.</p>
+
+        <button type="submit" class="btn-primary">Reveal My Chart ✦</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── App Shell ───────────────────────────────────────────────────────── -->
+  <div id="app">
+    <canvas id="app-canvas" class="starfield"></canvas>
+
+    <div class="app-content">
+
+      <!-- Dashboard Tab -->
+      <div class="tab-content active" id="tab-dashboard">
+        <div class="dash-header">
+          <div class="dash-greeting" id="dash-greeting">Good evening</div>
+          <div class="dash-weather" id="dash-weather">The cosmos is in motion</div>
+        </div>
+
+        <div class="dash-section">
+          <div class="dash-section-title">Your Reading</div>
+          <div class="period-selector">
+            <button class="period-btn active" data-period="daily">Today</button>
+            <button class="period-btn" data-period="weekly">This Week</button>
+            <button class="period-btn" data-period="monthly">This Month</button>
+            <button class="period-btn" data-period="yearly">This Year</button>
+          </div>
+          <div class="reading-card">
+            <div id="period-reading-content">
+              <p>Loading your reading…</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-section">
+          <div class="dash-section-title">Your most significant days ahead</div>
+          <div class="notable-days-list" id="notable-days-list">
+            <p class="subtle">Calculating your chart…</p>
+          </div>
+        </div>
+
+        <div class="celestia-cta" id="celestia-cta-btn">
+          <div class="cta-icon">🌙</div>
+          <div class="cta-text">
+            <h3>Consult Celestia</h3>
+            <p>Ask about any date, period, or area of life</p>
+          </div>
+          <div class="cta-arrow">›</div>
+        </div>
+      </div>
+
+      <!-- Celestia Tab -->
+      <div class="tab-content" id="tab-celestia">
+        <div class="celestia-header">
+          <div class="celestia-avatar">🌙</div>
+          <div class="celestia-header-text">
+            <h2>Celestia</h2>
+            <p>Your Personal Astrologer</p>
+          </div>
+        </div>
+
+        <div id="chat-messages"></div>
+
+        <div class="chat-input-bar">
+          <textarea
+            id="chat-input"
+            placeholder="Ask about any date, period, or life area…"
+            rows="1"
+          ></textarea>
+          <button id="chat-send" aria-label="Send">›</button>
+        </div>
+      </div>
+
+      <!-- Chart Tab -->
+      <div class="tab-content" id="tab-chart">
+        <div class="chart-header">
+          <h2>Your Natal Chart</h2>
+          <p>Planetary positions at your moment of birth</p>
+        </div>
+
+        <div class="chart-wheel-container" id="chart-wheel-container">
+          <!-- SVG rendered by app.js -->
+        </div>
+
+        <div class="rising-display" id="rising-display"></div>
+
+        <div class="divider" style="margin: 0 24px 16px;"></div>
+
+        <div class="dash-section" style="padding-top: 0;">
+          <div class="dash-section-title">Planet Positions</div>
+          <div class="planet-list" id="planet-list">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Retrogrades Tab -->
+      <div class="tab-content" id="tab-retrogrades">
+        <div class="retro-header-section">
+          <h2>Retrogrades</h2>
+          <p>When planets appear to move backwards — and what it means for you</p>
+        </div>
+
+        <div class="retrograde-list" id="retrograde-list">
+          <!-- Rendered by app.js -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Tab Bar -->
+    <nav class="tab-bar">
+      <button class="tab-btn active" data-tab="dashboard">
+        <span class="tab-icon">✦</span>
+        <span class="tab-label">Today</span>
+      </button>
+      <button class="tab-btn" data-tab="celestia">
+        <span class="tab-icon">🌙</span>
+        <span class="tab-label">Celestia</span>
+      </button>
+      <button class="tab-btn" data-tab="chart">
+        <span class="tab-icon">☿</span>
+        <span class="tab-label">Chart</span>
+      </button>
+      <button class="tab-btn" data-tab="retrogrades">
+        <span class="tab-icon">℞</span>
+        <span class="tab-label">Retrogrades</span>
+      </button>
+    </nav>
+  </div>
+
+  <script type="module" src="app.js"></script>
+  <script>
+    // Celestia CTA routes to chat tab
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('celestia-cta-btn')?.addEventListener('click', () => {
+        document.querySelector('[data-tab="celestia"]')?.click();
+      });
+
+      // Auto-resize textarea
+      const textarea = document.getElementById('chat-input');
+      if (textarea) {
+        textarea.addEventListener('input', () => {
+          textarea.style.height = 'auto';
+          textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        });
+      }
+    });
+  </script>
+</body>
+</html>
