@@ -1,0 +1,2332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08081A">
+  <title>CosmicMind</title>
+  <style>
+/* ─── Fonts ─────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+/* ─── Variables ─────────────────────────────────────────────────────────────── */
+:root {
+  --bg-deep:       #08081A;
+  --bg-mid:        #0F0F2A;
+  --bg-card:       rgba(255,255,255,0.04);
+  --bg-card-hover: rgba(255,255,255,0.07);
+  --gold:          #C9A84C;
+  --gold-light:    #E6C970;
+  --rose:          #C0688A;
+  --rose-light:    #E8A0B4;
+  --purple:        #7B5EA7;
+  --purple-light:  #9B7EC8;
+  --ivory:         #F5F0E8;
+  --ivory-dim:     rgba(245,240,232,0.55);
+  --ivory-faint:   rgba(245,240,232,0.25);
+  --border:        rgba(255,255,255,0.08);
+  --border-gold:   rgba(201,168,76,0.3);
+  --glow-gold:     rgba(201,168,76,0.15);
+  --glow-purple:   rgba(123,94,167,0.2);
+  --radius:        16px;
+  --radius-sm:     10px;
+  --tab-height:    64px;
+  --header-height: 80px;
+  --font-serif:    'Playfair Display', Georgia, serif;
+  --font-sans:     'Inter', -apple-system, sans-serif;
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-deep);
+  color: var(--ivory);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Starfield Canvas ───────────────────────────────────────────────────────── */
+.starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ─── Onboarding ─────────────────────────────────────────────────────────────── */
+#onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background: radial-gradient(ellipse at 50% 20%, rgba(123,94,167,0.25) 0%, transparent 70%),
+              radial-gradient(ellipse at 80% 80%, rgba(192,104,138,0.15) 0%, transparent 60%),
+              var(--bg-deep);
+}
+
+#onboarding-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.ob-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.ob-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ob-logo-symbol {
+  font-size: 48px;
+  line-height: 1;
+  filter: drop-shadow(0 0 20px rgba(201,168,76,0.5));
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+.ob-logo h1 {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, var(--gold-light), var(--ivory), var(--rose-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ob-logo p {
+  font-size: 13px;
+  color: var(--ivory-dim);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ob-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ob-form h2 {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--ivory);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.ob-form p {
+  font-size: 13px;
+  color: var(--ivory-dim);
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-group label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.field-group input {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--ivory);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+
+.field-group input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--glow-gold);
+}
+
+.field-group input::placeholder { color: var(--ivory-faint); }
+.field-group input[type="date"]::-webkit-calendar-picker-indicator,
+.field-group input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+}
+
+.field-row { display: flex; gap: 12px; }
+.field-row .field-group { flex: 1; }
+
+.ob-note {
+  font-size: 11px;
+  color: var(--ivory-faint);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold), var(--rose));
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--bg-deep);
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  letter-spacing: 0.02em;
+  margin-top: 4px;
+}
+
+.btn-primary:hover  { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+
+/* ─── App Shell ─────────────────────────────────────────────────────────────── */
+#app {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: none;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+  background: radial-gradient(ellipse at 50% 0%, rgba(123,94,167,0.2) 0%, transparent 60%),
+              var(--bg-deep);
+  overflow: hidden;
+}
+
+#app-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.app-content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Tab Content ────────────────────────────────────────────────────────────── */
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: calc(var(--tab-height) + 16px);
+  scrollbar-width: none;
+}
+
+.tab-content::-webkit-scrollbar { display: none; }
+.tab-content.active { display: block; }
+
+/* ─── Bottom Tab Bar ─────────────────────────────────────────────────────────── */
+.tab-bar {
+  position: relative;
+  z-index: 10;
+  height: var(--tab-height);
+  display: flex;
+  align-items: stretch;
+  background: rgba(8,8,26,0.92);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ivory-faint);
+  transition: color 0.2s;
+  padding: 8px 4px;
+}
+
+.tab-btn:hover { color: var(--ivory-dim); }
+.tab-btn.active { color: var(--gold); }
+
+.tab-icon {
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+
+.tab-btn.active .tab-icon { transform: scale(1.1); }
+
+.tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+/* ─── Dashboard ──────────────────────────────────────────────────────────────── */
+.dash-header {
+  padding: 52px 24px 20px;
+  background: linear-gradient(180deg, rgba(123,94,167,0.15) 0%, transparent 100%);
+}
+
+.dash-greeting {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--ivory);
+  margin-bottom: 6px;
+}
+
+.dash-weather {
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dash-weather::before { content: '✦'; }
+
+.dash-section { padding: 0 24px 24px; }
+.dash-section-title {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+  margin-bottom: 14px;
+}
+
+/* ─── Period Selector ────────────────────────────────────────────────────────── */
+.period-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.period-selector::-webkit-scrollbar { display: none; }
+
+.period-btn {
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 7px 16px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ivory-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.04em;
+}
+
+.period-btn:hover { border-color: var(--border-gold); color: var(--ivory); }
+.period-btn.active {
+  background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(192,104,138,0.15));
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ─── Reading Card ───────────────────────────────────────────────────────────── */
+.reading-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.reading-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.4;
+}
+
+#period-reading-content {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--ivory-dim);
+}
+
+#period-reading-content p { margin-bottom: 0.75em; }
+#period-reading-content p:last-child { margin-bottom: 0; }
+#period-reading-content strong { color: var(--ivory); font-weight: 600; }
+#period-reading-content em { color: var(--gold); font-style: italic; }
+
+/* ─── Notable Days ───────────────────────────────────────────────────────────── */
+.notable-days-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notable-day {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.notable-day:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-gold);
+}
+
+.notable-date {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold);
+  min-width: 52px;
+  flex-shrink: 0;
+}
+
+.notable-desc {
+  font-size: 13px;
+  color: var(--ivory-dim);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.intensity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.intensity-high   { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+.intensity-medium { background: var(--purple-light); }
+.intensity-low    { background: var(--ivory-faint); }
+
+.subtle { font-size: 13px; color: var(--ivory-faint); font-style: italic; }
+
+/* ─── Celestia CTA ───────────────────────────────────────────────────────────── */
+.celestia-cta {
+  margin: 0 24px 24px;
+  background: linear-gradient(135deg, rgba(123,94,167,0.2), rgba(192,104,138,0.15));
+  border: 1px solid rgba(123,94,167,0.35);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.celestia-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03), transparent);
+}
+
+.celestia-cta:hover {
+  border-color: var(--purple-light);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(123,94,167,0.2);
+}
+
+.cta-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 12px rgba(201,168,76,0.4));
+}
+
+.cta-text h3 {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ivory);
+  margin-bottom: 4px;
+}
+
+.cta-text p {
+  font-size: 12px;
+  color: var(--ivory-dim);
+  line-height: 1.4;
+}
+
+.cta-arrow {
+  margin-left: auto;
+  color: var(--gold);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* ─── Celestia Chat ──────────────────────────────────────────────────────────── */
+#tab-celestia {
+  display: none;
+  flex-direction: column;
+  height: calc(100vh - var(--tab-height));
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+#tab-celestia.active {
+  display: flex;
+}
+
+.celestia-header {
+  padding: 48px 24px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(123,94,167,0.12) 0%, transparent 100%);
+}
+
+.celestia-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--rose));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px var(--glow-purple);
+}
+
+.celestia-header-text h2 {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ivory);
+}
+
+.celestia-header-text p {
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+}
+
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: none;
+}
+
+#chat-messages::-webkit-scrollbar { display: none; }
+
+.chat-bubble {
+  max-width: 85%;
+  padding: 14px 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.7;
+  animation: bubbleIn 0.25s ease-out;
+}
+
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.celestia-bubble {
+  align-self: flex-start;
+  background: rgba(123,94,167,0.15);
+  border: 1px solid rgba(123,94,167,0.25);
+  border-bottom-left-radius: 6px;
+  color: var(--ivory);
+}
+
+.celestia-bubble p { margin-bottom: 0.6em; color: var(--ivory-dim); }
+.celestia-bubble p:last-child { margin-bottom: 0; }
+.celestia-bubble strong { color: var(--ivory); }
+.celestia-bubble em { color: var(--gold); font-style: italic; }
+
+.user-bubble {
+  align-self: flex-end;
+  background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(192,104,138,0.15));
+  border: 1px solid var(--border-gold);
+  border-bottom-right-radius: 6px;
+  color: var(--ivory);
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 18px;
+}
+
+.typing-indicator span {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--purple-light);
+  animation: typingBounce 1.2s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30%            { transform: translateY(-6px); opacity: 1; }
+}
+
+.chat-input-bar {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  border-top: 1px solid var(--border);
+  background: rgba(8,8,26,0.8);
+  backdrop-filter: blur(20px);
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+#chat-input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 12px 18px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ivory);
+  outline: none;
+  resize: none;
+  max-height: 120px;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+
+#chat-input:focus { border-color: var(--border-gold); }
+#chat-input::placeholder { color: var(--ivory-faint); }
+
+#chat-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--rose));
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+#chat-send:hover  { opacity: 0.9; }
+#chat-send:active { transform: scale(0.92); }
+
+/* ─── Chart Tab ──────────────────────────────────────────────────────────────── */
+.chart-header {
+  padding: 48px 24px 20px;
+  background: linear-gradient(180deg, rgba(123,94,167,0.12) 0%, transparent 100%);
+}
+
+.chart-header h2 {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ivory);
+}
+
+.chart-header p { font-size: 13px; color: var(--ivory-dim); margin-top: 4px; }
+
+.chart-wheel-container {
+  display: flex;
+  justify-content: center;
+  padding: 16px 24px;
+}
+
+.chart-wheel-container svg {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  filter: drop-shadow(0 0 30px rgba(123,94,167,0.3));
+}
+
+.rising-display {
+  text-align: center;
+  padding: 8px 24px 16px;
+  font-size: 14px;
+  color: var(--ivory-dim);
+}
+
+.rising-label { color: var(--gold); margin-right: 8px; letter-spacing: 0.06em; text-transform: uppercase; font-size: 11px; }
+.rising-sign  { font-family: var(--font-serif); font-size: 16px; color: var(--ivory); }
+
+.planet-list {
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.planet-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.planet-row:hover { background: var(--bg-card-hover); }
+
+.planet-symbol { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+.planet-name   { font-size: 13px; font-weight: 500; color: var(--ivory); flex: 1; }
+.planet-sign   { font-size: 13px; color: var(--ivory-dim); }
+.planet-deg    { font-size: 12px; color: var(--ivory-faint); min-width: 28px; text-align: right; }
+
+/* ─── Retrogrades Tab ────────────────────────────────────────────────────────── */
+.retro-header-section {
+  padding: 48px 24px 20px;
+  background: linear-gradient(180deg, rgba(123,94,167,0.12) 0%, transparent 100%);
+}
+
+.retro-header-section h2 {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ivory);
+}
+
+.retro-header-section p { font-size: 13px; color: var(--ivory-dim); margin-top: 4px; }
+
+.retrograde-list {
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.retrograde-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  transition: border-color 0.2s;
+}
+
+.retrograde-card.active-now {
+  border-color: rgba(201,168,76,0.4);
+  background: rgba(201,168,76,0.04);
+}
+
+.retro-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.retro-symbol { font-size: 20px; }
+.retro-name   { font-family: var(--font-serif); font-size: 16px; color: var(--ivory); flex: 1; }
+
+.retro-badge {
+  background: rgba(201,168,76,0.2);
+  border: 1px solid var(--border-gold);
+  border-radius: 10px;
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.retro-meaning {
+  font-size: 13px;
+  color: var(--ivory-dim);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.retro-periods { display: flex; flex-direction: column; gap: 6px; }
+
+.retro-period {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.retro-period.active { color: var(--gold); border-color: var(--border-gold); background: var(--glow-gold); }
+.retro-period.past   { color: var(--ivory-faint); }
+.retro-period.future { color: var(--ivory-dim); }
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
+.tab-content { scrollbar-width: none; }
+
+/* ─── Utility ─────────────────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 4px 0 20px;
+}
+
+/* ─── Desktop centering ───────────────────────────────────────────────────────── */
+@media (min-width: 500px) {
+  #app {
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    box-shadow: 0 0 80px rgba(123,94,167,0.15);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 40%, rgba(123,94,167,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 70%, rgba(192,104,138,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+}
+
+</style>
+</head>
+<body>
+
+  <!-- ── Onboarding ──────────────────────────────────────────────────────── -->
+  <div id="onboarding">
+    <canvas id="onboarding-canvas" class="starfield"></canvas>
+
+    <div class="ob-inner">
+      <div class="ob-logo">
+        <div class="ob-logo-symbol">✦</div>
+        <h1>CosmicMind</h1>
+        <p>Your personal astrologer</p>
+      </div>
+
+      <form class="ob-form" id="onboarding-form">
+        <h2>Read your chart</h2>
+        <p>Enter your birth details so Celestia can read the sky specifically for you. The more accurate your time and place, the deeper the reading.</p>
+
+        <div class="field-group">
+          <label for="ob-name">Your Name</label>
+          <input type="text" id="ob-name" placeholder="How shall I call you?" autocomplete="given-name" required>
+        </div>
+
+        <div class="field-group">
+          <label for="ob-date">Date of Birth</label>
+          <input type="date" id="ob-date" required>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="ob-time">Birth Time</label>
+            <input type="time" id="ob-time" placeholder="00:00">
+          </div>
+          <div class="field-group">
+            <label for="ob-place">Birth Place</label>
+            <input type="text" id="ob-place" placeholder="City, Country">
+          </div>
+        </div>
+
+        <p class="ob-note">Birth time and place unlock your Rising sign and house positions. Leave blank if unknown — the chart will still work.</p>
+
+        <button type="submit" class="btn-primary">Reveal My Chart ✦</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── App Shell ───────────────────────────────────────────────────────── -->
+  <div id="app">
+    <canvas id="app-canvas" class="starfield"></canvas>
+
+    <div class="app-content">
+
+      <!-- Dashboard Tab -->
+      <div class="tab-content active" id="tab-dashboard">
+        <div class="dash-header">
+          <div class="dash-greeting" id="dash-greeting">Good evening</div>
+          <div class="dash-weather" id="dash-weather">The cosmos is in motion</div>
+        </div>
+
+        <div class="dash-section">
+          <div class="dash-section-title">Your Reading</div>
+          <div class="period-selector">
+            <button class="period-btn active" data-period="daily">Today</button>
+            <button class="period-btn" data-period="weekly">This Week</button>
+            <button class="period-btn" data-period="monthly">This Month</button>
+            <button class="period-btn" data-period="yearly">This Year</button>
+          </div>
+          <div class="reading-card">
+            <div id="period-reading-content">
+              <p>Loading your reading…</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-section">
+          <div class="dash-section-title">Your most significant days ahead</div>
+          <div class="notable-days-list" id="notable-days-list">
+            <p class="subtle">Calculating your chart…</p>
+          </div>
+        </div>
+
+        <div class="celestia-cta" id="celestia-cta-btn">
+          <div class="cta-icon">🌙</div>
+          <div class="cta-text">
+            <h3>Consult Celestia</h3>
+            <p>Ask about any date, period, or area of life</p>
+          </div>
+          <div class="cta-arrow">›</div>
+        </div>
+      </div>
+
+      <!-- Celestia Tab -->
+      <div class="tab-content" id="tab-celestia">
+        <div class="celestia-header">
+          <div class="celestia-avatar">🌙</div>
+          <div class="celestia-header-text">
+            <h2>Celestia</h2>
+            <p>Your Personal Astrologer</p>
+          </div>
+        </div>
+
+        <div id="chat-messages"></div>
+
+        <div class="chat-input-bar">
+          <textarea
+            id="chat-input"
+            placeholder="Ask about any date, period, or life area…"
+            rows="1"
+          ></textarea>
+          <button id="chat-send" aria-label="Send">›</button>
+        </div>
+      </div>
+
+      <!-- Chart Tab -->
+      <div class="tab-content" id="tab-chart">
+        <div class="chart-header">
+          <h2>Your Natal Chart</h2>
+          <p>Planetary positions at your moment of birth</p>
+        </div>
+
+        <div class="chart-wheel-container" id="chart-wheel-container">
+          <!-- SVG rendered by app.js -->
+        </div>
+
+        <div class="rising-display" id="rising-display"></div>
+
+        <div class="divider" style="margin: 0 24px 16px;"></div>
+
+        <div class="dash-section" style="padding-top: 0;">
+          <div class="dash-section-title">Planet Positions</div>
+          <div class="planet-list" id="planet-list">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Retrogrades Tab -->
+      <div class="tab-content" id="tab-retrogrades">
+        <div class="retro-header-section">
+          <h2>Retrogrades</h2>
+          <p>When planets appear to move backwards — and what it means for you</p>
+        </div>
+
+        <div class="retrograde-list" id="retrograde-list">
+          <!-- Rendered by app.js -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Tab Bar -->
+    <nav class="tab-bar">
+      <button class="tab-btn active" data-tab="dashboard">
+        <span class="tab-icon">✦</span>
+        <span class="tab-label">Today</span>
+      </button>
+      <button class="tab-btn" data-tab="celestia">
+        <span class="tab-icon">🌙</span>
+        <span class="tab-label">Celestia</span>
+      </button>
+      <button class="tab-btn" data-tab="chart">
+        <span class="tab-icon">☿</span>
+        <span class="tab-label">Chart</span>
+      </button>
+      <button class="tab-btn" data-tab="retrogrades">
+        <span class="tab-icon">℞</span>
+        <span class="tab-label">Retrogrades</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+// == ephemeris.js ==
+// Simplified ephemeris using mean orbital elements (J2000.0 epoch)
+// Accurate to within ~1-2 degrees for prototype purposes
+
+const J2000 = 2451545.0;
+
+const PLANETS = {
+  sun:     { name: 'Sun',     symbol: '☉', L0: 280.46646, Ld: 0.9856002585,  color: '#F5C842' },
+  moon:    { name: 'Moon',    symbol: '☽', L0: 218.3165,  Ld: 13.17639648,   color: '#C8D8E8' },
+  mercury: { name: 'Mercury', symbol: '☿', L0: 252.2504,  Ld: 4.09233,       color: '#B8A99A' },
+  venus:   { name: 'Venus',   symbol: '♀', L0: 181.9798,  Ld: 1.60213,       color: '#E8C99A' },
+  mars:    { name: 'Mars',    symbol: '♂', L0: 355.4530,  Ld: 0.52403,       color: '#E87060' },
+  jupiter: { name: 'Jupiter', symbol: '♃', L0: 34.3515,   Ld: 0.08309,       color: '#C9A87A' },
+  saturn:  { name: 'Saturn',  symbol: '♄', L0: 50.0774,   Ld: 0.03346,       color: '#D4C4A0' },
+  uranus:  { name: 'Uranus',  symbol: '⛢', L0: 314.0550,  Ld: 0.01176,       color: '#7ECACA' },
+  neptune: { name: 'Neptune', symbol: '♆', L0: 304.3487,  Ld: 0.00598,       color: '#6080C8' },
+  pluto:   { name: 'Pluto',   symbol: '♇', L0: 238.9290,  Ld: 0.00397,       color: '#A08878' },
+  chiron:  { name: 'Chiron',  symbol: '⚷', L0: 151.9800,  Ld: 0.01955,       color: '#98B898' },
+};
+
+const SIGNS = [
+  { name: 'Aries',       symbol: '♈', element: 'Fire',  modality: 'Cardinal', ruler: 'Mars'    },
+  { name: 'Taurus',      symbol: '♉', element: 'Earth', modality: 'Fixed',    ruler: 'Venus'   },
+  { name: 'Gemini',      symbol: '♊', element: 'Air',   modality: 'Mutable',  ruler: 'Mercury' },
+  { name: 'Cancer',      symbol: '♋', element: 'Water', modality: 'Cardinal', ruler: 'Moon'    },
+  { name: 'Leo',         symbol: '♌', element: 'Fire',  modality: 'Fixed',    ruler: 'Sun'     },
+  { name: 'Virgo',       symbol: '♍', element: 'Earth', modality: 'Mutable',  ruler: 'Mercury' },
+  { name: 'Libra',       symbol: '♎', element: 'Air',   modality: 'Cardinal', ruler: 'Venus'   },
+  { name: 'Scorpio',     symbol: '♏', element: 'Water', modality: 'Fixed',    ruler: 'Pluto'   },
+  { name: 'Sagittarius', symbol: '♐', element: 'Fire',  modality: 'Mutable',  ruler: 'Jupiter' },
+  { name: 'Capricorn',   symbol: '♑', element: 'Earth', modality: 'Cardinal', ruler: 'Saturn'  },
+  { name: 'Aquarius',    symbol: '♒', element: 'Air',   modality: 'Fixed',    ruler: 'Uranus'  },
+  { name: 'Pisces',      symbol: '♓', element: 'Water', modality: 'Mutable',  ruler: 'Neptune' },
+];
+
+const ASPECTS = [
+  { name: 'Conjunction', symbol: '☌', angle: 0,   orb: 8,  type: 'major', nature: 'neutral'    },
+  { name: 'Sextile',     symbol: '⚹', angle: 60,  orb: 4,  type: 'major', nature: 'harmonious' },
+  { name: 'Square',      symbol: '□', angle: 90,  orb: 7,  type: 'major', nature: 'tense'      },
+  { name: 'Trine',       symbol: '△', angle: 120, orb: 7,  type: 'major', nature: 'harmonious' },
+  { name: 'Opposition',  symbol: '☍', angle: 180, orb: 8,  type: 'major', nature: 'tense'      },
+  { name: 'Quincunx',    symbol: '⚻', angle: 150, orb: 2,  type: 'minor', nature: 'tense'      },
+];
+
+// Retrograde periods for 2024-2026 (hardcoded for accuracy)
+const RETROGRADES = [
+  { planet: 'mercury', start: new Date('2025-01-18'), end: new Date('2025-02-11'), sign: 'Aquarius' },
+  { planet: 'mercury', start: new Date('2025-05-29'), end: new Date('2025-06-22'), sign: 'Gemini'   },
+  { planet: 'mercury', start: new Date('2025-09-26'), end: new Date('2025-10-20'), sign: 'Libra'    },
+  { planet: 'mercury', start: new Date('2026-01-25'), end: new Date('2026-02-19'), sign: 'Aquarius' },
+  { planet: 'venus',   start: new Date('2025-03-01'), end: new Date('2025-04-12'), sign: 'Aries'    },
+  { planet: 'mars',    start: new Date('2024-12-06'), end: new Date('2025-02-23'), sign: 'Leo'      },
+  { planet: 'jupiter', start: new Date('2025-11-11'), end: new Date('2026-03-11'), sign: 'Gemini'   },
+  { planet: 'saturn',  start: new Date('2025-07-12'), end: new Date('2025-11-27'), sign: 'Aries'    },
+  { planet: 'uranus',  start: new Date('2025-09-06'), end: new Date('2026-02-04'), sign: 'Gemini'   },
+  { planet: 'neptune', start: new Date('2025-07-04'), end: new Date('2025-12-10'), sign: 'Aries'    },
+  { planet: 'pluto',   start: new Date('2025-05-04'), end: new Date('2025-10-13'), sign: 'Aquarius' },
+];
+
+// Major sign ingresses 2025-2026
+const INGRESSES = [
+  { planet: 'uranus',  sign: 'Gemini',      date: new Date('2025-07-07'),  note: 'Uranus enters Gemini — major 7-year shift' },
+  { planet: 'neptune', sign: 'Aries',        date: new Date('2025-03-30'),  note: 'Neptune enters Aries — spiritual new era' },
+  { planet: 'saturn',  sign: 'Aries',        date: new Date('2025-05-24'),  note: 'Saturn enters Aries — new responsibilities' },
+  { planet: 'jupiter', sign: 'Cancer',       date: new Date('2025-06-09'),  note: 'Jupiter enters Cancer — expansion at home' },
+  { planet: 'jupiter', sign: 'Leo',          date: new Date('2026-06-30'),  note: 'Jupiter enters Leo — creative expansion' },
+];
+
+function dateToJD(date) {
+  return (date.getTime() / 86400000) + 2440587.5;
+}
+
+function normalizeDeg(deg) {
+  return ((deg % 360) + 360) % 360;
+}
+
+function getPlanetLongitude(planetKey, date) {
+  const planet = PLANETS[planetKey];
+  const jd = dateToJD(date);
+  const d = jd - J2000;
+  return normalizeDeg(planet.L0 + planet.Ld * d);
+}
+
+function getAllPlanetPositions(date) {
+  const positions = {};
+  for (const key of Object.keys(PLANETS)) {
+    const lon = getPlanetLongitude(key, date);
+    const signIndex = Math.floor(lon / 30);
+    const degInSign = lon % 30;
+    positions[key] = {
+      longitude: lon,
+      sign: SIGNS[signIndex],
+      signIndex,
+      degInSign: Math.floor(degInSign),
+      minInSign: Math.floor((degInSign % 1) * 60),
+    };
+  }
+  return positions;
+}
+
+function getAspect(lon1, lon2) {
+  let diff = Math.abs(lon1 - lon2);
+  if (diff > 180) diff = 360 - diff;
+  for (const aspect of ASPECTS) {
+    if (Math.abs(diff - aspect.angle) <= aspect.orb) {
+      return { ...aspect, exactness: Math.abs(diff - aspect.angle) };
+    }
+  }
+  return null;
+}
+
+function getAspectsBetweenCharts(natal, transit) {
+  const aspects = [];
+  const importantNatal = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'ascendant'];
+  const importantTransit = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto'];
+
+  for (const nKey of importantNatal) {
+    if (!natal[nKey]) continue;
+    const nLon = natal[nKey].longitude;
+    for (const tKey of importantTransit) {
+      if (!transit[tKey]) continue;
+      const tLon = transit[tKey].longitude;
+      const aspect = getAspect(nLon, tLon);
+      if (aspect) {
+        aspects.push({
+          transitPlanet: tKey,
+          natalPlanet: nKey,
+          aspect,
+          transitPos: transit[tKey],
+          natalPos: natal[nKey],
+        });
+      }
+    }
+  }
+  return aspects.sort((a, b) => a.aspect.exactness - b.aspect.exactness);
+}
+
+function getRetrogrades(startDate, endDate) {
+  return RETROGRADES.filter(r => r.end >= startDate && r.start <= endDate);
+}
+
+function getIngresses(startDate, endDate) {
+  return INGRESSES.filter(i => i.date >= startDate && i.date <= endDate);
+}
+
+function isRetrograde(planetKey, date) {
+  return RETROGRADES.some(r => r.planet === planetKey && date >= r.start && date <= r.end);
+}
+
+// Find notable days in a range by scanning for tight aspects to natal chart
+function findNotableDays(natalPositions, startDate, daysAhead = 90) {
+  const notable = [];
+  const seen = new Set();
+
+  for (let i = 0; i < daysAhead; i++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + i);
+    const transit = getAllPlanetPositions(date);
+    const aspects = getAspectsBetweenCharts(natalPositions, transit);
+
+    // Only flag days with tight aspects (exactness < 1 degree) from outer/slow planets
+    const significantAspects = aspects.filter(a => {
+      const slowPlanets = ['jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'chiron'];
+      const personalPlanets = ['sun', 'moon', 'venus', 'mars'];
+      const isSlowTransit = slowPlanets.includes(a.transitPlanet);
+      const isPersonalNatal = personalPlanets.includes(a.natalPlanet) || a.natalPlanet === 'sun' || a.natalPlanet === 'moon';
+      return a.aspect.exactness < 1.5 && (isSlowTransit || isPersonalNatal);
+    });
+
+    // Check for ingresses on this day
+    const dayIngresses = INGRESSES.filter(ing => {
+      const d = ing.date;
+      return d.getFullYear() === date.getFullYear() &&
+             d.getMonth() === date.getMonth() &&
+             d.getDate() === date.getDate();
+    });
+
+    // Check for retrograde station days
+    const retroStations = RETROGRADES.filter(r => {
+      const checkDate = (d) => d.getFullYear() === date.getFullYear() &&
+                               d.getMonth() === date.getMonth() &&
+                               d.getDate() === date.getDate();
+      return checkDate(r.start) || checkDate(r.end);
+    });
+
+    if (significantAspects.length > 0 || dayIngresses.length > 0 || retroStations.length > 0) {
+      const key = date.toDateString();
+      if (!seen.has(key)) {
+        seen.add(key);
+        notable.push({
+          date: new Date(date),
+          aspects: significantAspects.slice(0, 2),
+          ingresses: dayIngresses,
+          retroStations,
+          score: significantAspects.length + dayIngresses.length * 2 + retroStations.length,
+        });
+      }
+    }
+  }
+
+  return notable.sort((a, b) => b.score - a.score).slice(0, 8);
+}
+
+// Calculate approximate rising sign based on birth time and latitude
+function calcRisingSign(birthDate, birthHour, latitude) {
+  const sunLon = getPlanetLongitude('sun', birthDate);
+  // Simplified: RAMC approximation
+  const lstHours = (birthHour + (sunLon / 15)) % 24;
+  const ascLon = normalizeDeg(lstHours * 15 + latitude * 0.5);
+  const signIndex = Math.floor(ascLon / 30);
+  return { longitude: ascLon, sign: SIGNS[signIndex], signIndex, degInSign: Math.floor(ascLon % 30) };
+}
+
+// == interpretations.js ==
+// Astrological interpretations database
+
+const PLANET_IN_SIGN = {
+  sun: {
+    aries:       "You lead with boldness and act on instinct. Your identity is tied to action and independence.",
+    taurus:      "You build your identity through stability, loyalty, and a deep appreciation for beauty.",
+    gemini:      "Your sense of self is fluid, curious, and expressive. You thrive on connection and ideas.",
+    cancer:      "Your identity runs deep — emotional, intuitive, and fiercely protective of those you love.",
+    leo:         "You were born to shine. Creative expression, warmth, and natural leadership define you.",
+    virgo:       "You find purpose through precision, service, and improvement. Your mind is your greatest tool.",
+    libra:       "Harmony, fairness, and connection are your core drives. You are built for partnership.",
+    scorpio:     "Intensity is your signature. You transform everything you touch and fear nothing beneath the surface.",
+    sagittarius: "Freedom, truth, and adventure fuel you. You need a philosophy to live by.",
+    capricorn:   "Ambition and structure are in your bones. You build with intention and play a long game.",
+    aquarius:    "You think in systems and futures. Original, humanitarian, and refreshingly independent.",
+    pisces:      "You feel everything. Compassion, creativity, and spiritual sensitivity define your essence.",
+  },
+  moon: {
+    aries:       "Your emotions are quick and passionate — you feel first and think later. Needs independence emotionally.",
+    taurus:      "You find emotional security in comfort, routine, and sensory pleasure. Slow to change, deeply loyal.",
+    gemini:      "Your emotional world is verbal and restless. You process feelings through conversation and curiosity.",
+    cancer:      "The Moon is at home here. Deep empathy, powerful intuition, and a need for emotional safety.",
+    leo:         "You need to feel admired and seen. Generous with love but wounded by being overlooked.",
+    virgo:       "You feel better when things are in order. Anxiety often masquerades as criticism — of self and others.",
+    libra:       "You crave emotional balance and harmony. Conflict feels physically uncomfortable to you.",
+    scorpio:     "Your emotional depths are volcanic. Intensely private, highly perceptive, slow to trust.",
+    sagittarius: "You need emotional freedom and optimism. Feel suffocated by heaviness or routine.",
+    capricorn:   "You manage emotions rather than express them. Responsible, resilient, but emotionally reserved.",
+    aquarius:    "You process emotions intellectually. You care deeply for humanity but struggle with personal intimacy.",
+    pisces:      "Your emotional boundaries are porous. You absorb everything around you — sensitivity as both gift and curse.",
+  },
+  mercury: {
+    aries:       "Fast, direct, and decisive in thought. You say what you mean — sometimes before thinking it through.",
+    taurus:      "Slow and deliberate thinker. You form views carefully and hold them firmly once formed.",
+    gemini:      "Mercury rules here — quick wit, rapid connections, and an insatiable curiosity about everything.",
+    cancer:      "Your mind is guided by intuition and memory. You think in feelings as much as facts.",
+    leo:         "You communicate with confidence and flair. Ideas need an audience to come alive for you.",
+    virgo:       "Mercury at its sharpest. Analytical, precise, and attuned to detail that others miss.",
+    libra:       "You weigh every side before speaking. Diplomatic, fair-minded, and skilled at finding common ground.",
+    scorpio:     "Your mind goes deep and misses nothing. Probing, perceptive, and drawn to hidden truths.",
+    sagittarius: "You think in big pictures and philosophies. Inspiring to talk to, but impatient with small details.",
+    capricorn:   "Practical, structured, and strategic in thought. You communicate with authority and purpose.",
+    aquarius:    "Your thinking is original and often ahead of its time. You see patterns others can't.",
+    pisces:      "Intuitive and poetic in thought. Logic bends to imagination — your mind works in metaphor.",
+  },
+  venus: {
+    aries:       "You love fast and directly. Passion over patience — you want to pursue and be pursued.",
+    taurus:      "Venus rules here. Sensual, loyal, and deeply committed. You love through touch and quality.",
+    gemini:      "You love through conversation and mental connection. Variety keeps desire alive.",
+    cancer:      "You love deeply and protectively. Home is where your heart lives — literally.",
+    leo:         "Grand gestures, romance, and devotion. You love royally and expect the same in return.",
+    virgo:       "You show love through service and thoughtfulness. Small gestures mean more than grand ones.",
+    libra:       "Venus rules here too. You were made for partnership — romantic, charming, and deeply fair.",
+    scorpio:     "Total merger or nothing. Your love is transformative, possessive, and unforgettable.",
+    sagittarius: "You love with freedom. Adventure and growth must be shared — caged love won't survive.",
+    capricorn:   "Slow to open, loyal once committed. You build love like you build everything else — for keeps.",
+    aquarius:    "You need an intellectual equal. Unconventional relationships suit you — friendship first.",
+    pisces:      "Romantic to the core. You dissolve into love — the challenge is not losing yourself in it.",
+  },
+  mars: {
+    aries:       "Mars at home. Pure drive, direct action, zero patience. You were born to initiate.",
+    taurus:      "Slow to anger, slow to act — but immovable once in motion. Your energy is endurance.",
+    gemini:      "Energy scattered across many pursuits. Witty aggression — your weapon is words.",
+    cancer:      "Indirect drive. You fight for those you love but resist direct confrontation for yourself.",
+    leo:         "Dramatic, passionate, and competitive. You perform your drive — it must be witnessed.",
+    virgo:       "Precise and systematic energy. You work harder than anyone but rarely show it.",
+    libra:       "You argue diplomatically. Motivated by fairness — you fight best when the cause is just.",
+    scorpio:     "Mars co-rules here. Strategic, relentless, and deeply powerful. You outlast everyone.",
+    sagittarius: "Energy goes into exploration and expansion. Enthusiastic, fast-moving, freedom-seeking.",
+    capricorn:   "Disciplined and goal-oriented drive. You are tireless when you have a worthy target.",
+    aquarius:    "You fight for causes, not personal gain. Rebellious energy, innovating through disruption.",
+    pisces:      "Diffuse and spiritual drive. Energy waxes and wanes. Creative passion over direct ambition.",
+  },
+  jupiter: {
+    aries:       "Growth through bold initiative and taking the first leap. Lucky when you act without waiting.",
+    taurus:      "Abundance through patience, pleasure, and building steadily. Material fortune favours you.",
+    gemini:      "Expansion through ideas, communication, and learning. The more you know, the more you grow.",
+    cancer:      "Growth through nurturing and home. Family, intuition, and emotional wisdom bring luck.",
+    leo:         "Fortune through creative self-expression and leadership. Your generosity attracts abundance.",
+    virgo:       "Growth through mastery and service. The details you perfect become your greatest assets.",
+    libra:       "Expansion through partnerships and collaboration. Your biggest wins come through others.",
+    scorpio:     "Growth through depth, transformation, and investigation. You prosper by going where others won't.",
+    sagittarius: "Jupiter at home. Boundless optimism, travel, and philosophical expansion. Born lucky.",
+    capricorn:   "Growth through structure, ambition, and long-term strategy. Fortune rewards your discipline.",
+    aquarius:    "Expansion through innovation and community. Your luck is collective, not solo.",
+    pisces:      "Jupiter at home. Spiritual abundance, creative flow, and compassion attract blessings.",
+  },
+  saturn: {
+    aries:       "Your lessons involve patience, follow-through, and tempering impulsiveness with strategy.",
+    taurus:      "Lessons around security, material stability, and not hoarding out of fear.",
+    gemini:      "Lessons around focus, depth, and finishing what the mind starts.",
+    cancer:      "Lessons around emotional boundaries, nurturing without martyrdom, and family patterns.",
+    leo:         "Lessons around ego, recognition, and learning to shine authentically rather than performatively.",
+    virgo:       "Lessons around perfectionism, self-criticism, and the courage to do imperfect things.",
+    libra:       "Saturn exalted here. Lessons around fair commitment and building lasting partnerships.",
+    scorpio:     "Deep lessons around control, power, and surrendering what no longer serves.",
+    sagittarius: "Lessons around commitment to a belief system and responsible freedom.",
+    capricorn:   "Saturn at home. Discipline, structure, and authority are your path and your reward.",
+    aquarius:    "Saturn at home. Lessons around responsible innovation and earned rebellion.",
+    pisces:      "Lessons around boundaries, sacrifice, and distinguishing spiritual surrender from avoidance.",
+  },
+  uranus: {
+    aries:       "Revolution in identity and individual expression. Your generation reinvents what it means to be a self.",
+    taurus:      "Revolution in material systems, money, and the body. Your generation disrupts economic structures.",
+    gemini:      "Revolution in communication and information. Your generation transforms how minds connect.",
+    cancer:      "Revolution in family, home, and emotional norms. Your generation redefines belonging.",
+    leo:         "Revolution in creativity, performance, and leadership. Your generation reinvents self-expression.",
+    virgo:       "Revolution in health, work, and service. Your generation disrupts systems of daily life.",
+    libra:       "Revolution in relationships and justice. Your generation reinvents what partnership means.",
+    scorpio:     "Revolution in power, sexuality, and transformation. Your generation exposes hidden systems.",
+    sagittarius: "Revolution in belief, travel, and meaning. Your generation expands the horizon of truth.",
+    capricorn:   "Revolution in authority and institutions. Your generation dismantles old power structures.",
+    aquarius:    "Uranus at home. Revolution in technology and collective identity. Your generation is the future.",
+    pisces:      "Revolution in spirituality and the unconscious. Your generation dissolves old illusions.",
+  },
+  neptune: {
+    aries:       "A new spiritual frontier opens. Collective idealism is channelled into bold new directions.",
+    taurus:      "Spiritualising the material. Collective dreams around beauty, nature, and value.",
+    gemini:      "Spiritual communication, illusion in media, mystical ideas spreading rapidly.",
+    cancer:      "Deep collective longing for home, roots, and belonging. Idealism in family life.",
+    leo:         "Glamour, creative transcendence, and collective fantasy around celebrity and performance.",
+    virgo:       "Spiritual service and healing. Collective dissolution of unhealthy systems.",
+    libra:       "Spiritual partnerships and idealism in love. A generation that dreams of perfect union.",
+    scorpio:     "Collective transformation, spiritual depth, and dissolution of old taboos.",
+    sagittarius: "Spiritual expansion, religious idealism, and a generation seeking transcendent meaning.",
+    capricorn:   "Spiritual ambition, dissolving old institutions, and collective disillusionment with authority.",
+    aquarius:    "Collective spiritual awakening through technology and community. Utopian dreams.",
+    pisces:      "Neptune at home. Peak spiritual sensitivity. A generation of mystics, artists, and healers.",
+  },
+  pluto: {
+    aries:       "Generational destruction and rebirth of individual identity and personal power.",
+    taurus:      "Transformation of material systems, finance, and humanity's relationship with the Earth.",
+    gemini:      "Revolution in thought, language, and how information shapes reality.",
+    cancer:      "Transformation of family structures, nationalism, and emotional foundations of society.",
+    leo:         "Transformation of power, creativity, and leadership — the rise and fall of great egos.",
+    virgo:       "Transformation of health systems, work, and the nature of service.",
+    libra:       "Transformation of relationships, marriage, and collective ideas of justice.",
+    scorpio:     "Pluto at home. Deep generational transformation, shadow work, and psychological revolution.",
+    sagittarius: "Transformation of belief systems, globalisation, and what humanity calls truth.",
+    capricorn:   "Dismantling of institutional power structures. A generation tearing down and rebuilding systems.",
+    aquarius:    "Transformation through technology, collective power, and the nature of humanity itself.",
+    pisces:      "Spiritual dissolution, transformation of the unconscious, and generational healing.",
+  },
+};
+
+const ASPECT_INTERPRETATIONS = {
+  'jupiter_conjunction_sun':  "A golden period of confidence, luck, and expansion. Opportunities come easily now. Say yes.",
+  'jupiter_trine_sun':        "Ease and opportunity flow to you. Growth happens naturally — lean into it.",
+  'jupiter_square_sun':       "Jupiter pushes you to grow but through friction. Overconfidence is the risk — stay grounded.",
+  'jupiter_opposition_sun':   "Growth comes through relationships and balancing your needs with others. Don't go it alone.",
+  'saturn_conjunction_sun':   "A defining chapter of discipline, responsibility, and restructuring who you are. Hard but formative.",
+  'saturn_trine_sun':         "Structure supports you now. Your efforts compound. Slow, steady wins.",
+  'saturn_square_sun':        "Reality checks are incoming. Obstacles exist to redirect and strengthen you. Don't quit.",
+  'saturn_opposition_sun':    "A moment of reckoning with authority, ambition, or the weight of responsibility.",
+  'uranus_conjunction_sun':   "Your life is being shaken loose from old patterns. Radical change in identity. Embrace it.",
+  'uranus_trine_sun':         "Exciting, liberating change comes without chaos. Freedom and authenticity are the rewards.",
+  'uranus_square_sun':        "Disruption to your core identity. You can resist or reinvent — reinvention wins.",
+  'neptune_conjunction_sun':  "A mystical, confusing, dissolving period. Who you are is in flux. Trust the process.",
+  'pluto_conjunction_sun':    "A profound transformation of identity. The old you is dying. Let it.",
+  'pluto_trine_sun':          "Deep empowerment. You are being strengthened from the inside out.",
+  'jupiter_conjunction_moon': "Emotional abundance and warmth. Home, family, and inner life feel blessed.",
+  'saturn_conjunction_moon':  "Emotional weight and maturity. You are being asked to grow up emotionally.",
+  'uranus_conjunction_moon':  "Emotional upheaval or liberation. Your feeling life is breaking free of old patterns.",
+  'jupiter_conjunction_venus':"Love and abundance align. Relationships expand, beauty is everywhere, money flows.",
+  'saturn_conjunction_venus': "Love is being tested for depth and commitment. What's real will last.",
+  'uranus_conjunction_venus': "Sudden changes in love and attraction. Electric connections or unexpected endings.",
+  'jupiter_conjunction_mars': "Energy and ambition are amplified. Act boldly — fortune rewards initiative now.",
+  'saturn_conjunction_mars':  "Discipline your drive. Patience and strategy beat raw force right now.",
+};
+
+const RETROGRADE_MEANINGS = {
+  mercury: {
+    general:  "Mercury retrograde slows communication and technology. Review, revise, and reconnect — but avoid signing contracts or launching new projects.",
+    themes:   ["communication delays", "technology glitches", "revisiting old conversations", "rethinking decisions"],
+  },
+  venus: {
+    general:  "Venus retrograde asks you to reassess what — and who — you truly value. Old loves may resurface. Not the time for major relationship decisions.",
+    themes:   ["revisiting relationships", "reassessing values", "old flames", "delayed pleasure"],
+  },
+  mars: {
+    general:  "Mars retrograde turns energy inward. Frustration rises when action is blocked. Channel it into reflection and strategy, not force.",
+    themes:   ["internalised energy", "reassessing goals", "frustration", "strategic pause"],
+  },
+  jupiter: {
+    general:  "Jupiter retrograde asks you to find growth from within rather than seeking it externally. Inner wisdom is your resource.",
+    themes:   ["inner growth", "questioning beliefs", "reassessing luck", "philosophical review"],
+  },
+  saturn: {
+    general:  "Saturn retrograde brings lessons from the past back for resolution. Old structures are reviewed — keep what truly supports you.",
+    themes:   ["revisiting structure", "old karma", "rebuilding foundations", "delayed accountability"],
+  },
+  uranus: {
+    general:  "Uranus retrograde internalises the revolution. Change goes underground — inner awakening, not external disruption.",
+    themes:   ["inner rebellion", "reconsidering change", "hidden breakthroughs"],
+  },
+  neptune: {
+    general:  "Neptune retrograde briefly lifts the veil of illusion. Clarity about confusion in your spiritual life and relationships is possible.",
+    themes:   ["seeing clearly", "disillusionment", "spiritual re-evaluation"],
+  },
+  pluto: {
+    general:  "Pluto retrograde turns transformation inward. Shadow work, power dynamics, and deep psychological excavation are the themes.",
+    themes:   ["shadow work", "inner power", "releasing control", "deep psychological process"],
+  },
+};
+
+const DAILY_COSMIC_WEATHER = [
+  "Mercury is active — sharp thinking, fast conversations, make the call.",
+  "Venus lights up the sky — beauty, connection, and pleasure are heightened.",
+  "The Moon is in a tense aspect — emotions run high. Breathe before reacting.",
+  "Jupiter casts a benevolent eye — optimism is well-founded today.",
+  "Saturn demands attention — show up, do the work, no shortcuts.",
+  "Mars energises the day — act decisively, channel the drive.",
+  "A harmonious trine softens the day — things flow with less effort.",
+  "The Sun aspects Neptune — intuition is sharp, logic is foggy.",
+  "Uranus stirs the pot — expect the unexpected and stay flexible.",
+  "Pluto works in the background — what's hidden is surfacing.",
+];
+
+const NOTABLE_DAY_DESCRIPTIONS = {
+  conjunction: (transit, natal) => `${capitalize(transit)} meets your natal ${capitalize(natal)} — a powerful activation of this part of your chart.`,
+  trine:       (transit, natal) => `${capitalize(transit)} trines your natal ${capitalize(natal)} — energy flows easily into this area of life.`,
+  square:      (transit, natal) => `${capitalize(transit)} squares your natal ${capitalize(natal)} — friction that demands attention and growth.`,
+  opposition:  (transit, natal) => `${capitalize(transit)} opposes your natal ${capitalize(natal)} — a culmination or turning point in this theme.`,
+  sextile:     (transit, natal) => `${capitalize(transit)} opens a door to your natal ${capitalize(natal)} — opportunity if you reach for it.`,
+};
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function getAspectInterpretation(transitPlanet, aspectName, natalPlanet) {
+  const key = `${transitPlanet}_${aspectName.toLowerCase()}_${natalPlanet}`;
+  if (ASPECT_INTERPRETATIONS[key]) return ASPECT_INTERPRETATIONS[key];
+
+  // Fallback generic interpretations
+  const aspectFeel = {
+    conjunction: "intense activation and focus",
+    trine:       "ease, flow, and natural support",
+    square:      "tension, challenge, and growth pressure",
+    opposition:  "a culmination, reflection, or external pressure",
+    sextile:     "opportunity that rewards initiative",
+    quincunx:    "adjustment, awkwardness, and the need to recalibrate",
+  };
+  const planetThemes = {
+    sun:     "identity and vitality",
+    moon:    "emotions and instincts",
+    mercury: "mind and communication",
+    venus:   "love and values",
+    mars:    "drive and action",
+    jupiter: "growth and opportunity",
+    saturn:  "structure and discipline",
+    uranus:  "change and liberation",
+    neptune: "spirituality and dreams",
+    pluto:   "transformation and power",
+    chiron:  "wounds and healing",
+  };
+  const transitTheme = planetThemes[transitPlanet] || transitPlanet;
+  const natalTheme = planetThemes[natalPlanet] || natalPlanet;
+  const feel = aspectFeel[aspectName.toLowerCase()] || "an interesting interaction";
+  return `${capitalize(transitPlanet)} brings ${feel} to your natal ${capitalize(natalPlanet)} — the themes of ${transitTheme} are intersecting with your ${natalTheme}.`;
+}
+
+function getPlanetInSignInterpretation(planet, sign) {
+  const signKey = sign.toLowerCase();
+  const planetKey = planet.toLowerCase();
+  if (PLANET_IN_SIGN[planetKey] && PLANET_IN_SIGN[planetKey][signKey]) {
+    return PLANET_IN_SIGN[planetKey][signKey];
+  }
+  return `${capitalize(planet)} in ${capitalize(sign)} — a unique placement that blends ${planet}'s energy with ${sign}'s qualities.`;
+}
+
+function getRetrogradeMeaning(planet) {
+  return RETROGRADE_MEANINGS[planet.toLowerCase()] || {
+    general: `${capitalize(planet)} retrograde turns this planet's energy inward for review and reconsideration.`,
+    themes: ["review", "reconsideration", "internalisation"],
+  };
+}
+
+function getNotableDayDescription(aspectName, transitPlanet, natalPlanet) {
+  const fn = NOTABLE_DAY_DESCRIPTIONS[aspectName.toLowerCase()];
+  if (fn) return fn(transitPlanet, natalPlanet);
+  return `${capitalize(transitPlanet)} forms a ${aspectName} with your natal ${capitalize(natalPlanet)}.`;
+}
+
+// == celestia.js ==
+// Celestia — AI chat simulation
+// Generates contextually accurate astrological responses using real ephemeris data
+
+// Parse a date or period from natural language
+function parseIntent(message) {
+  const msg = message.toLowerCase();
+  const today = new Date();
+
+  // Specific date patterns
+  const datePatterns = [
+    /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/,
+    /(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s*(\d{4})?/i,
+    /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{1,2})(?:st|nd|rd|th)?\s*(\d{4})?/i,
+  ];
+
+  const monthMap = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11 };
+
+  for (const pattern of datePatterns) {
+    const match = msg.match(pattern);
+    if (match) {
+      let date;
+      if (match[0].match(/\d[\/\-]\d/)) {
+        const parts = match[0].split(/[\/\-]/);
+        date = new Date(
+          parts[2] ? (parts[2].length === 2 ? 2000 + parseInt(parts[2]) : parseInt(parts[2])) : today.getFullYear(),
+          parseInt(parts[1]) - 1,
+          parseInt(parts[0])
+        );
+      } else {
+        const monthStr = (match[1] || match[3] || '').toLowerCase().substring(0, 3);
+        const month = monthMap[monthStr];
+        const day = parseInt(match[2] || match[1]);
+        const year = parseInt(match[3] || match[4]) || today.getFullYear();
+        if (!isNaN(month) && !isNaN(day)) {
+          date = new Date(year, month, day);
+        }
+      }
+      if (date && !isNaN(date)) return { type: 'date', date, range: 1 };
+    }
+  }
+
+  // Relative time
+  if (msg.includes('yesterday')) {
+    const d = new Date(today); d.setDate(d.getDate() - 1);
+    return { type: 'date', date: d, range: 1 };
+  }
+  if (msg.includes('today') || msg.includes('right now') || msg.includes('currently')) {
+    return { type: 'date', date: today, range: 1 };
+  }
+  if (msg.includes('tomorrow')) {
+    const d = new Date(today); d.setDate(d.getDate() + 1);
+    return { type: 'date', date: d, range: 1 };
+  }
+  if (msg.includes('this week') || msg.includes('next week')) {
+    const offset = msg.includes('next week') ? 7 : 0;
+    const d = new Date(today); d.setDate(d.getDate() + offset);
+    return { type: 'period', date: d, range: 7, label: msg.includes('next') ? 'next week' : 'this week' };
+  }
+  if (msg.includes('this month') || msg.includes('next month')) {
+    const offset = msg.includes('next month') ? 30 : 0;
+    const d = new Date(today); d.setDate(d.getDate() + offset);
+    return { type: 'period', date: d, range: 30, label: msg.includes('next') ? 'next month' : 'this month' };
+  }
+  if (msg.includes('this year') || msg.includes('rest of the year') || msg.includes('year ahead')) {
+    return { type: 'period', date: today, range: 365, label: 'this year' };
+  }
+  if (msg.includes('next') && msg.match(/(\d+)\s+(day|week|month)/)) {
+    const m = msg.match(/(\d+)\s+(day|week|month)/);
+    const n = parseInt(m[1]);
+    const unit = m[2];
+    const range = unit === 'day' ? n : unit === 'week' ? n * 7 : n * 30;
+    return { type: 'period', date: today, range, label: `the next ${n} ${unit}${n > 1 ? 's' : ''}` };
+  }
+
+  // Topic intents
+  if (msg.match(/retrograd/)) return { type: 'topic', topic: 'retrograde' };
+  if (msg.match(/birth ?chart|natal chart|my chart/)) return { type: 'topic', topic: 'birthchart' };
+  if (msg.match(/ris(e|ing)|ascendant/)) return { type: 'topic', topic: 'rising' };
+  if (msg.match(/love|relationship|partner|romance/)) return { type: 'topic', topic: 'love', date: today, range: 30 };
+  if (msg.match(/career|work|job|money|finance/)) return { type: 'topic', topic: 'career', date: today, range: 30 };
+  if (msg.match(/health|body|energy|wellbeing/)) return { type: 'topic', topic: 'health', date: today, range: 30 };
+
+  return { type: 'date', date: today, range: 7 };
+}
+
+function formatDate(date) {
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function getSignEmoji(signName) {
+  const map = { aries:'♈',taurus:'♉',gemini:'♊',cancer:'♋',leo:'♌',virgo:'♍',
+                libra:'♎',scorpio:'♏',sagittarius:'♐',capricorn:'♑',aquarius:'♒',pisces:'♓' };
+  return map[signName?.toLowerCase()] || '✦';
+}
+
+function buildTransitSummary(natalPositions, targetDate, rangeLabel) {
+  const transit = getAllPlanetPositions(targetDate);
+  const aspects = getAspectsBetweenCharts(natalPositions, transit);
+  const topAspects = aspects.filter(a => a.aspect.exactness < 3).slice(0, 4);
+
+  const activeRetrogrades = Object.keys(PLANETS).filter(p => isRetrograde(p, targetDate));
+  const ingresses = getIngresses(
+    new Date(targetDate.getTime() - 3 * 86400000),
+    new Date(targetDate.getTime() + 3 * 86400000)
+  );
+
+  let response = '';
+
+  // Opening — contextual to date
+  const dateStr = rangeLabel || formatDate(targetDate);
+  const sunSign = transit.sun?.sign?.name || '';
+  response += `Looking at ${dateStr} for your chart — the Sun is in ${sunSign} ${getSignEmoji(sunSign)}, painting the backdrop of this period.\n\n`;
+
+  // Ingresses — these are the biggest events
+  if (ingresses.length > 0) {
+    for (const ing of ingresses) {
+      response += `✦ **${capitalize(ing.planet)} enters ${ing.sign}** — ${ing.note}. This is a significant collective shift, and how it lands for you personally depends on where ${ing.sign} falls in your chart.\n\n`;
+    }
+  }
+
+  // Active retrogrades
+  if (activeRetrogrades.length > 0) {
+    const retros = activeRetrogrades.map(p => capitalize(p)).join(', ');
+    response += `✦ **Retrograde watch**: ${retros} ${activeRetrogrades.length === 1 ? 'is' : 'are'} retrograde during this period. `;
+    if (activeRetrogrades.includes('mercury')) {
+      response += `Mercury retrograde is active — tread carefully with contracts, travel, and important conversations. Review, don't launch.\n\n`;
+    } else {
+      response += `Retrogrades ask you to turn inward and review rather than charge forward.\n\n`;
+    }
+  }
+
+  // Personal transits from chart
+  if (topAspects.length > 0) {
+    response += `**What this means for your chart specifically:**\n\n`;
+    for (const a of topAspects) {
+      const interp = getAspectInterpretation(a.transitPlanet, a.aspect.name, a.natalPlanet);
+      const symbol = a.aspect.symbol;
+      response += `✦ **${capitalize(a.transitPlanet)} ${symbol} your natal ${capitalize(a.natalPlanet)}** — ${interp}\n\n`;
+    }
+  } else {
+    // General reading when no tight aspects
+    const weather = DAILY_COSMIC_WEATHER[Math.floor(Math.random() * DAILY_COSMIC_WEATHER.length)];
+    response += `The skies aren't pressing hard on any single point in your chart right now — this is a relatively open window. ${weather}\n\n`;
+  }
+
+  return response;
+}
+
+function buildBirthChartSummary(natalPositions, userData) {
+  let response = `Here's the essence of your natal chart, ${userData.name}.\n\n`;
+
+  const sun = natalPositions.sun;
+  const moon = natalPositions.moon;
+  const rising = natalPositions.ascendant;
+
+  if (sun) {
+    response += `✦ **Sun in ${sun.sign.name}** ${getSignEmoji(sun.sign.name)} — ${getPlanetInSignInterpretation('sun', sun.sign.name)}\n\n`;
+  }
+  if (moon) {
+    response += `✦ **Moon in ${moon.sign.name}** ${getSignEmoji(moon.sign.name)} — ${getPlanetInSignInterpretation('moon', moon.sign.name)}\n\n`;
+  }
+  if (rising) {
+    response += `✦ **Rising in ${rising.sign.name}** ${getSignEmoji(rising.sign.name)} — Your rising sign is the mask you wear and the first impression you make on the world.\n\n`;
+  }
+
+  response += `Your Venus in ${natalPositions.venus?.sign?.name || '—'} shapes how you love, and your Mars in ${natalPositions.mars?.sign?.name || '—'} drives how you act. Want me to go deeper on any of these, or shall we look at what the current transits are activating in your chart?`;
+
+  return response;
+}
+
+function buildRetrogradeSummary(targetDate) {
+  const today = targetDate || new Date();
+  const endDate = new Date(today);
+  endDate.setDate(endDate.getDate() + 90);
+
+  const activeNow = Object.keys(PLANETS).filter(p => isRetrograde(p, today));
+  const upcoming = getRetrogrades(today, endDate).filter(r => r.start > today);
+
+  let response = `**Retrograde Landscape**\n\n`;
+
+  if (activeNow.length > 0) {
+    response += `Currently retrograde: **${activeNow.map(capitalize).join(', ')}**\n\n`;
+    for (const planet of activeNow) {
+      const meaning = getRetrogradeMeaning(planet);
+      response += `✦ **${capitalize(planet)} Retrograde** — ${meaning.general}\n\n`;
+    }
+  } else {
+    response += `No major planets are retrograde right now — a relatively clear window for forward motion.\n\n`;
+  }
+
+  if (upcoming.length > 0) {
+    response += `**Coming up in the next 90 days:**\n\n`;
+    for (const r of upcoming.slice(0, 3)) {
+      response += `✦ **${capitalize(r.planet)} goes retrograde** in ${r.sign} on ${formatDate(r.start)} — ${getRetrogradeMeaning(r.planet).themes.slice(0, 2).join(', ')}.\n\n`;
+    }
+  }
+
+  return response;
+}
+
+function buildTopicResponse(topic, natalPositions, targetDate) {
+  const transit = getAllPlanetPositions(targetDate);
+  const aspects = getAspectsBetweenCharts(natalPositions, transit);
+
+  const topicPlanets = {
+    love:   ['venus', 'moon', 'mars'],
+    career: ['saturn', 'sun', 'mars', 'jupiter'],
+    health: ['mars', 'sun', 'chiron'],
+  };
+
+  const relevant = aspects.filter(a =>
+    topicPlanets[topic]?.includes(a.natalPlanet) ||
+    topicPlanets[topic]?.includes(a.transitPlanet)
+  ).slice(0, 3);
+
+  const topicIntros = {
+    love:   `Looking at love and relationships in your chart right now`,
+    career: `On the career and ambition front`,
+    health: `Around your energy and physical wellbeing`,
+  };
+
+  let response = `${topicIntros[topic] || 'Looking at this area of your chart'}:\n\n`;
+
+  if (relevant.length > 0) {
+    for (const a of relevant) {
+      const interp = getAspectInterpretation(a.transitPlanet, a.aspect.name, a.natalPlanet);
+      response += `✦ **${capitalize(a.transitPlanet)} ${a.aspect.symbol} your natal ${capitalize(a.natalPlanet)}** — ${interp}\n\n`;
+    }
+  } else {
+    const venusSigns = natalPositions.venus?.sign?.name;
+    response += `Your Venus in ${venusSigns || 'your chart'} shapes this area deeply. The transits aren't pressing on this part of your chart with great urgency right now — which can actually mean steady ground to work from rather than reactive energy.\n\n`;
+  }
+
+  return response;
+}
+
+// Greeting responses
+const GREETINGS = [
+  (name) => `Hello ${name} ✦ The stars are listening. What would you like to explore — a specific date, a life area, or your chart as a whole?`,
+  (name) => `Welcome back, ${name}. The sky is always in motion. Shall we look at what it's doing for you right now, or is there a specific period on your mind?`,
+  (name) => `${name} ✦ I'm here. What are you wanting clarity on — a date, a theme, or something you're currently navigating?`,
+];
+
+const THANKS_RESPONSES = [
+  "Always here when you need to read the sky. ✦",
+  "The cosmos doesn't stop moving — come back whenever you need a read.",
+  "Take what resonates, leave the rest. ✦ The stars are patient.",
+];
+
+function generateResponse(message, userData, natalPositions) {
+  const msg = message.toLowerCase().trim();
+
+  // Greetings
+  if (msg.match(/^(hi|hello|hey|hiya|morning|evening|night|sup|yo)\b/)) {
+    const fn = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
+    return fn(userData.name);
+  }
+
+  // Thanks
+  if (msg.match(/^(thank|thanks|cheers|perfect|great|amazing|brilliant|wow)\b/)) {
+    return THANKS_RESPONSES[Math.floor(Math.random() * THANKS_RESPONSES.length)];
+  }
+
+  // What can you do
+  if (msg.match(/what can you|what do you do|help|capabilities/)) {
+    return `I can read the sky for you, ${userData.name}.\n\nAsk me about:\n✦ **A specific date** — "How does 14 June look for me?"\n✦ **A time period** — "What's this month looking like?"\n✦ **A life area** — "What do the planets say about my love life right now?"\n✦ **Your birth chart** — "Tell me about my natal chart"\n✦ **Retrogrades** — "What retrogrades are coming?"\n✦ **Past periods** — "Why was last March so intense?"\n\nI use your exact birth chart against real planetary positions — no generic readings here.`;
+  }
+
+  const intent = parseIntent(message);
+
+  if (intent.type === 'topic') {
+    if (intent.topic === 'retrograde') return buildRetrogradeSummary(new Date());
+    if (intent.topic === 'birthchart') return buildBirthChartSummary(natalPositions, userData);
+    if (intent.topic === 'rising') {
+      const rising = natalPositions.ascendant;
+      if (rising) return `Your Rising sign is **${rising.sign.name}** ${getSignEmoji(rising.sign.name)}. This is the mask you present to the world — your first impression, your physical appearance, how others experience you before they know you. Your ${rising.sign.name} rising means you come across as ${getRisingDescription(rising.sign.name)}.`;
+      return `Your Rising sign depends on your exact birth time and location. If you entered those in your profile, it's already in your chart — tap the Chart tab to see it.`;
+    }
+    return buildTopicResponse(intent.topic, natalPositions, intent.date || new Date());
+  }
+
+  if (intent.type === 'date' || intent.type === 'period') {
+    return buildTransitSummary(natalPositions, intent.date, intent.label);
+  }
+
+  // Default — treat as general "right now"
+  return buildTransitSummary(natalPositions, new Date(), 'right now');
+}
+
+function getRisingDescription(sign) {
+  const desc = {
+    aries:       "bold, direct, and full of energy — you make an impression immediately",
+    taurus:      "calm, grounded, and magnetic — people sense your steadiness",
+    gemini:      "quick, curious, and socially fluid — you seem to know everyone",
+    cancer:      "warm, nurturing, and quietly intuitive — people feel safe around you",
+    leo:         "radiant, confident, and commanding — you light up a room",
+    virgo:       "composed, precise, and quietly observant — you notice everything",
+    libra:       "charming, elegant, and naturally diplomatic — beauty follows you",
+    scorpio:     "intense, magnetic, and a little mysterious — people are drawn in and can't explain why",
+    sagittarius: "free-spirited, enthusiastic, and immediately likeable — you bring adventure with you",
+    capricorn:   "composed, capable, and quietly authoritative — people take you seriously instantly",
+    aquarius:    "original, a little otherworldly, and intriguing — you stand apart without trying",
+    pisces:      "dreamy, gentle, and ethereal — people sense something soft and otherworldly about you",
+  };
+  return desc[sign?.toLowerCase()] || "uniquely yourself";
+}
+
+// == app.js ==
+// ─── State ────────────────────────────────────────────────────────────────────
+const state = {
+  user: null,
+  natalPositions: null,
+  currentTab: 'dashboard',
+  chatHistory: [],
+  dashboardPeriod: 'daily',
+};
+
+// ─── Persistence ──────────────────────────────────────────────────────────────
+function saveUser(user) {
+  try { localStorage.setItem('cosmicmind_user', JSON.stringify(user)); } catch {}
+}
+function loadUser() {
+  try { return JSON.parse(localStorage.getItem('cosmicmind_user')); } catch { return null; }
+}
+
+// ─── Birth Chart Calculation ──────────────────────────────────────────────────
+function buildNatalChart(user) {
+  const birthDate = new Date(user.birthDate);
+  const positions = getAllPlanetPositions(birthDate);
+
+  if (user.birthTime) {
+    const [h, m] = user.birthTime.split(':').map(Number);
+    const hour = h + m / 60;
+    const lat = user.birthLat || 51.5;
+    positions.ascendant = calcRisingSign(birthDate, hour, lat);
+  }
+  return positions;
+}
+
+// ─── Onboarding ──────────────────────────────────────────────────────────────
+function showOnboarding() {
+  document.getElementById('onboarding').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  initStarfield(document.getElementById('onboarding-canvas'));
+}
+
+function showApp() {
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initStarfield(document.getElementById('app-canvas'));
+  switchTab('dashboard');
+}
+
+// ─── Tab Navigation ───────────────────────────────────────────────────────────
+function switchTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab)
+  );
+  document.querySelectorAll('.tab-content').forEach(c =>
+    c.classList.toggle('active', c.id === `tab-${tab}`)
+  );
+  if (tab === 'dashboard')   renderDashboard();
+  if (tab === 'celestia')    renderCelestia();
+  if (tab === 'chart')       renderChart();
+  if (tab === 'retrogrades') renderRetrogrades();
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const today = new Date();
+  const hour = today.getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('dash-greeting').textContent = `${greeting}, ${state.user.name}`;
+
+  const weather = DAILY_COSMIC_WEATHER[today.getDate() % DAILY_COSMIC_WEATHER.length];
+  document.getElementById('dash-weather').textContent = weather;
+
+  renderPeriodReading(state.dashboardPeriod);
+  renderNotableDays();
+}
+
+function renderPeriodReading(period) {
+  state.dashboardPeriod = period;
+  document.querySelectorAll('.period-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.period === period)
+  );
+
+  const today = new Date();
+  const reading = period === 'daily'
+    ? buildDailyReading(today)
+    : buildPeriodReading(period, today);
+
+  document.getElementById('period-reading-content').innerHTML = renderMarkdown(reading);
+}
+
+function buildDailyReading(today) {
+  const transit = getAllPlanetPositions(today);
+  const aspects = getAspectsBetweenCharts(state.natalPositions, transit);
+  const top = aspects.filter(a => a.aspect.exactness < 4).slice(0, 3);
+
+  const sunSign = transit.sun?.sign?.name || '';
+  const moonSign = transit.moon?.sign?.name || '';
+
+  let text = `The Sun moves through **${sunSign}** today, and the Moon is in **${moonSign}** — setting the emotional tone as ${getMoonMood(moonSign)}.\n\n`;
+
+  if (top.length > 0) {
+    const a = top[0];
+    const interp = getAspectInterpretation(a.transitPlanet, a.aspect.name, a.natalPlanet);
+    text += `The most significant energy today: **${capitalize(a.transitPlanet)} ${a.aspect.symbol} your natal ${capitalize(a.natalPlanet)}** — ${interp}`;
+  } else {
+    text += `The transits today don't press hard on your personal planets — a relatively clean day. Good for steady, intentional work rather than reactive energy.`;
+  }
+  return text;
+}
+
+function buildPeriodReading(period, today) {
+  const days = { weekly: 7, monthly: 30, yearly: 365 }[period] || 30;
+  const endDate = new Date(today);
+  endDate.setDate(endDate.getDate() + days);
+
+  const retros = getRetrogrades(today, endDate);
+  const ingresses = getIngresses(today, endDate);
+
+  let text = '';
+
+  for (const ing of ingresses.slice(0, 2)) {
+    text += `✦ ${ing.note}\n\n`;
+  }
+
+  for (const r of retros.slice(0, 2)) {
+    const m = getRetrogradeMeaning(r.planet);
+    text += `✦ **${capitalize(r.planet)} retrograde** in ${r.sign} — ${m.general}\n\n`;
+  }
+
+  if (!text) {
+    const transit = getAllPlanetPositions(today);
+    const aspects = getAspectsBetweenCharts(state.natalPositions, transit).slice(0, 2);
+    for (const a of aspects) {
+      text += `✦ **${capitalize(a.transitPlanet)} ${a.aspect.symbol} your natal ${capitalize(a.natalPlanet)}** — ${getAspectInterpretation(a.transitPlanet, a.aspect.name, a.natalPlanet)}\n\n`;
+    }
+  }
+
+  return text || `The skies are relatively quiet for this period — a time for steady progress rather than dramatic shifts.`;
+}
+
+function getMoonMood(sign) {
+  const moods = {
+    aries:'restless and ready for action', taurus:'grounded and sensory',
+    gemini:'chatty and mentally lively', cancer:'emotional and introspective',
+    leo:'expressive and warm', virgo:'detail-oriented and analytical',
+    libra:'social and harmony-seeking', scorpio:'intense and perceptive',
+    sagittarius:'optimistic and freedom-craving', capricorn:'serious and focused',
+    aquarius:'detached and idealistic', pisces:'dreamy and empathetic',
+  };
+  return moods[sign?.toLowerCase()] || 'shifting and reflective';
+}
+
+function renderNotableDays() {
+  const today = new Date();
+  const notable = findNotableDays(state.natalPositions, today, 90);
+  const container = document.getElementById('notable-days-list');
+
+  if (!notable.length) {
+    container.innerHTML = '<p class="subtle">No major activations in the next 90 days — steady skies ahead.</p>';
+    return;
+  }
+
+  const sorted = [...notable].sort((a, b) => a.date - b.date).slice(0, 6);
+  container.innerHTML = sorted.map(day => {
+    const dateStr = day.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    let desc = '';
+    if (day.ingresses.length > 0)       desc = day.ingresses[0].note;
+    else if (day.retroStations.length > 0) {
+      const r = day.retroStations[0];
+      const isStart = Math.abs(r.start - day.date) < 86400000;
+      desc = `${capitalize(r.planet)} ${isStart ? 'goes retrograde' : 'stations direct'} in ${r.sign}`;
+    } else if (day.aspects.length > 0) {
+      const a = day.aspects[0];
+      desc = getNotableDayDescription(a.aspect.name, a.transitPlanet, a.natalPlanet);
+    }
+    const intensity = day.score >= 3 ? 'high' : day.score >= 2 ? 'medium' : 'low';
+    return `
+      <div class="notable-day" data-intensity="${intensity}">
+        <div class="notable-date">${dateStr}</div>
+        <div class="notable-desc">${escapeHtml(desc)}</div>
+        <div class="intensity-dot intensity-${intensity}"></div>
+      </div>`;
+  }).join('');
+}
+
+// ─── Chart Tab ────────────────────────────────────────────────────────────────
+function renderChart() {
+  const natal = state.natalPositions;
+  document.getElementById('chart-wheel-container').innerHTML = drawChartWheel(natal);
+
+  const list = document.getElementById('planet-list');
+  list.innerHTML = Object.entries(PLANETS).map(([key, planet]) => {
+    const pos = natal[key];
+    if (!pos) return '';
+    const birthDate = new Date(state.user.birthDate);
+    const rx = isRetrograde(key, birthDate) ? ' ℞' : '';
+    return `
+      <div class="planet-row">
+        <span class="planet-symbol" style="color:${planet.color}">${planet.symbol}</span>
+        <span class="planet-name">${planet.name}${rx}</span>
+        <span class="planet-sign">${pos.sign.symbol} ${pos.sign.name}</span>
+        <span class="planet-deg">${pos.degInSign}°</span>
+      </div>`;
+  }).join('');
+
+  const rising = natal.ascendant;
+  document.getElementById('rising-display').innerHTML = rising
+    ? `<span class="rising-label">Rising</span> <span class="rising-sign">${rising.sign.symbol} ${rising.sign.name}</span>`
+    : `<span class="rising-label">Rising</span> <span style="color:var(--ivory-faint);font-size:13px">Add birth time for rising sign</span>`;
+}
+
+function drawChartWheel(natal) {
+  const size = 300;
+  const cx = size / 2, cy = size / 2;
+  const outerR = 130, signR = 112, planetR = 82, innerR = 52;
+  const signColors = ['#E87060','#D4C4A0','#7ECACA','#C8D8E8','#F5C842','#B8C8A0',
+                      '#E8C99A','#C090A8','#C9A87A','#908878','#80A8C8','#A898C8'];
+
+  let svg = `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#1a1040" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#08081a" stop-opacity="0.9"/>
+      </radialGradient>
+    </defs>
+    <circle cx="${cx}" cy="${cy}" r="${outerR}" fill="url(#bgGrad)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${signR}"  fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+    <circle cx="${cx}" cy="${cy}" r="${planetR}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+    <circle cx="${cx}" cy="${cy}" r="${innerR}" fill="rgba(8,8,26,0.7)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/>`;
+
+  // Sign dividers and symbols
+  for (let i = 0; i < 12; i++) {
+    const startAngle = (i * 30 - 90) * Math.PI / 180;
+    const x1 = cx + outerR * Math.cos(startAngle);
+    const y1 = cy + outerR * Math.sin(startAngle);
+    const x2 = cx + signR  * Math.cos(startAngle);
+    const y2 = cy + signR  * Math.sin(startAngle);
+    svg += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>`;
+
+    const midAngle = ((i * 30 + 15) - 90) * Math.PI / 180;
+    const mr = (outerR + signR) / 2;
+    const tx = cx + mr * Math.cos(midAngle);
+    const ty = cy + mr * Math.sin(midAngle);
+    svg += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="${signColors[i]}" opacity="0.9">${SIGNS[i].symbol}</text>`;
+  }
+
+  // Planets
+  const plotted = [];
+  for (const [key, planet] of Object.entries(PLANETS)) {
+    const pos = natal[key];
+    if (!pos) continue;
+    const angle = (pos.longitude - 90) * Math.PI / 180;
+    const nearby = plotted.filter(p => Math.abs(p.lon - pos.longitude) < 10);
+    const r = planetR - 14 * nearby.length;
+    const px = (cx + r * Math.cos(angle)).toFixed(1);
+    const py = (cy + r * Math.sin(angle)).toFixed(1);
+    svg += `<circle cx="${px}" cy="${py}" r="9" fill="rgba(8,8,26,0.95)" stroke="${planet.color}" stroke-width="1.2"/>`;
+    svg += `<text x="${px}" y="${py}" text-anchor="middle" dominant-baseline="middle" font-size="8" fill="${planet.color}">${planet.symbol}</text>`;
+    plotted.push({ lon: pos.longitude, key });
+  }
+
+  // Ascendant line
+  if (natal.ascendant) {
+    const angle = (natal.ascendant.longitude - 90) * Math.PI / 180;
+    const x1 = (cx + innerR * Math.cos(angle)).toFixed(1);
+    const y1 = (cy + innerR * Math.sin(angle)).toFixed(1);
+    const x2 = (cx + outerR * Math.cos(angle)).toFixed(1);
+    const y2 = (cy + outerR * Math.sin(angle)).toFixed(1);
+    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(201,168,76,0.6)" stroke-width="1.5" stroke-dasharray="3,2"/>`;
+  }
+
+  svg += `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" font-size="8" fill="rgba(255,255,255,0.2)" letter-spacing="1">ASC</text>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+// ─── Retrogrades Tab ──────────────────────────────────────────────────────────
+function renderRetrogrades() {
+  const today = new Date();
+  const yearEnd = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const retros = getRetrogrades(new Date(today.getFullYear(), 0, 1), yearEnd);
+  const container = document.getElementById('retrograde-list');
+
+  const grouped = {};
+  for (const r of retros) {
+    if (!grouped[r.planet]) grouped[r.planet] = [];
+    grouped[r.planet].push(r);
+  }
+
+  const planetOrder = ['mercury','venus','mars','jupiter','saturn','uranus','neptune','pluto'];
+
+  container.innerHTML = planetOrder.map(planet => {
+    const periods = grouped[planet];
+    if (!periods) return '';
+    const p = PLANETS[planet];
+    const meaning = getRetrogradeMeaning(planet);
+    const activeNow = isRetrograde(planet, today);
+
+    return `
+      <div class="retrograde-card ${activeNow ? 'active-now' : ''}">
+        <div class="retro-header">
+          <span class="retro-symbol" style="color:${p.color}">${p.symbol}</span>
+          <span class="retro-name">${p.name} Retrograde</span>
+          ${activeNow ? '<span class="retro-badge">Active Now</span>' : ''}
+        </div>
+        <p class="retro-meaning">${meaning.general}</p>
+        <div class="retro-periods">
+          ${periods.map(r => {
+            const past   = r.end < today;
+            const active = r.start <= today && r.end >= today;
+            const cls    = active ? 'active' : past ? 'past' : 'future';
+            return `<div class="retro-period ${cls}">
+              ${r.start.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} —
+              ${r.end.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} in ${r.sign}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ─── Celestia Chat ────────────────────────────────────────────────────────────
+function renderCelestia() {
+  if (state.chatHistory.length === 0) {
+    addCelestiaMessage(
+      `Welcome, ${state.user.name}. I'm Celestia — your personal astrologer.\n\nI know your exact birth chart and I read the sky in real time against it. Ask me about any date, time period, or area of life. No generic readings here — everything is tailored to you.\n\nWhat would you like to explore?`
+    );
+  }
+}
+
+function addCelestiaMessage(text) {
+  state.chatHistory.push({ role: 'celestia', text });
+  renderChatHistory();
+}
+
+function addUserMessage(text) {
+  state.chatHistory.push({ role: 'user', text });
+  renderChatHistory();
+}
+
+function renderChatHistory() {
+  const container = document.getElementById('chat-messages');
+  container.innerHTML = state.chatHistory.map(msg =>
+    msg.role === 'user'
+      ? `<div class="chat-bubble user-bubble">${escapeHtml(msg.text)}</div>`
+      : `<div class="chat-bubble celestia-bubble">${renderMarkdown(msg.text)}</div>`
+  ).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function handleChatSend() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  addUserMessage(text);
+
+  const container = document.getElementById('chat-messages');
+  const typing = document.createElement('div');
+  typing.className = 'chat-bubble celestia-bubble typing-indicator';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  container.appendChild(typing);
+  container.scrollTop = container.scrollHeight;
+
+  setTimeout(() => {
+    typing.remove();
+    const response = generateResponse(text, state.user, state.natalPositions);
+    addCelestiaMessage(response);
+  }, 700 + Math.random() * 700);
+}
+
+// ─── Markdown renderer ────────────────────────────────────────────────────────
+function renderMarkdown(text) {
+  return '<p>' + text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>')
+    + '</p>';
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Starfield ────────────────────────────────────────────────────────────────
+function initStarfield(canvas) {
+  if (!canvas) return;
+  canvas.width  = canvas.offsetWidth  || window.innerWidth;
+  canvas.height = canvas.offsetHeight || window.innerHeight;
+  const ctx = canvas.getContext('2d');
+
+  const stars = Array.from({ length: 200 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.4 + 0.2,
+    opacity: Math.random() * 0.65 + 0.2,
+    phase: Math.random() * Math.PI * 2,
+    speed: Math.random() * 0.018 + 0.004,
+  }));
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const s of stars) {
+      s.phase += s.speed;
+      const alpha = s.opacity * (0.55 + 0.45 * Math.sin(s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+function init() {
+  // Tab navigation
+  document.querySelectorAll('.tab-btn').forEach(btn =>
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab))
+  );
+
+  // Period buttons (delegated)
+  document.addEventListener('click', e => {
+    if (e.target.classList.contains('period-btn')) {
+      renderPeriodReading(e.target.dataset.period);
+    }
+  });
+
+  // Celestia CTA
+  document.getElementById('celestia-cta-btn')?.addEventListener('click', () => switchTab('celestia'));
+
+  // Chat
+  document.getElementById('chat-send')?.addEventListener('click', handleChatSend);
+  document.getElementById('chat-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); }
+  });
+
+  // Auto-resize textarea
+  document.getElementById('chat-input')?.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+
+  // Onboarding form
+  document.getElementById('onboarding-form')?.addEventListener('submit', e => {
+    e.preventDefault();
+    const name      = document.getElementById('ob-name').value.trim();
+    const birthDate = document.getElementById('ob-date').value;
+    const birthTime = document.getElementById('ob-time').value;
+    const birthPlace = document.getElementById('ob-place').value.trim();
+    if (!name || !birthDate) return;
+
+    const user = { name, birthDate, birthTime, birthLocation: birthPlace, birthLat: 51.5 };
+    state.user = user;
+    state.natalPositions = buildNatalChart(user);
+    saveUser(user);
+    showApp();
+  });
+
+  // Restore session
+  const saved = loadUser();
+  if (saved) {
+    state.user = saved;
+    state.natalPositions = buildNatalChart(saved);
+    showApp();
+  } else {
+    showOnboarding();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+  <script>
+    // Celestia CTA routes to chat tab
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('celestia-cta-btn')?.addEventListener('click', () => {
+        document.querySelector('[data-tab="celestia"]')?.click();
+      });
+
+      // Auto-resize textarea
+      const textarea = document.getElementById('chat-input');
+      if (textarea) {
+        textarea.addEventListener('input', () => {
+          textarea.style.height = 'auto';
+          textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        });
+      }
+    });
+  </script>
+</body>
+</html>
