@@ -102,6 +102,20 @@ function getSignEmoji(signName) {
   return map[signName?.toLowerCase()] || '✦';
 }
 
+function calcIntensity(aspects, activeRetrogrades = []) {
+  let score = 28;
+  for (const a of aspects) {
+    const weight = a.aspect.type === 'major' ? 12 : 5;
+    const tightness = Math.max(0, 1 - a.aspect.exactness / 8);
+    score += Math.round(weight * tightness);
+  }
+  if (activeRetrogrades.includes('mercury')) score += 15;
+  if (activeRetrogrades.includes('venus'))   score += 10;
+  if (activeRetrogrades.includes('mars'))    score += 8;
+  if (activeRetrogrades.includes('saturn'))  score += 6;
+  return Math.min(100, score);
+}
+
 function buildTransitSummary(natalPositions, targetDate, rangeLabel) {
   const transit = getAllPlanetPositions(targetDate);
   const aspects = getAspectsBetweenCharts(natalPositions, transit);
@@ -113,67 +127,95 @@ function buildTransitSummary(natalPositions, targetDate, rangeLabel) {
     new Date(targetDate.getTime() + 3 * 86400000)
   );
 
-  let response = '';
-
-  // Opening — contextual to date
   const dateStr = rangeLabel || formatDate(targetDate);
   const sunSign = transit.sun?.sign?.name || '';
-  response += `Looking at ${dateStr} for your chart — the Sun is in ${sunSign} ${getSignEmoji(sunSign)}, painting the backdrop of this period.\n\n`;
+  const intensity = calcIntensity(topAspects, activeRetrogrades);
 
-  // Ingresses — these are the biggest events
+  let response = `**1. The Setup — ${dateStr}**\n`;
+  response += `**Vibe:** Sun in ${sunSign} ${getSignEmoji(sunSign)}`;
+
   if (ingresses.length > 0) {
-    for (const ing of ingresses) {
-      response += `✦ **${capitalize(ing.planet)} enters ${ing.sign}** — ${ing.note}. This is a significant collective shift, and how it lands for you personally depends on where ${ing.sign} falls in your chart.\n\n`;
-    }
+    response += ` with ${capitalize(ingresses[0].planet)} just moving into ${ingresses[0].sign} — the collective energy is shifting noticeably right now`;
   }
+  response += `.\n\n`;
 
-  // Active retrogrades
   if (activeRetrogrades.length > 0) {
     const retros = activeRetrogrades.map(p => capitalize(p)).join(', ');
-    response += `✦ **Retrograde watch**: ${retros} ${activeRetrogrades.length === 1 ? 'is' : 'are'} retrograde during this period. `;
+    response += `**2. Retrograde Watch**\n`;
+    response += `**Impact:** ${retros} ${activeRetrogrades.length === 1 ? 'is' : 'are'} retrograde. `;
     if (activeRetrogrades.includes('mercury')) {
-      response += `Mercury retrograde is active — tread carefully with contracts, travel, and important conversations. Review, don't launch.\n\n`;
+      response += `Mercury retrograde is the loud one here — contracts, travel, and key conversations all need a second look before you commit.\n\n`;
     } else {
-      response += `Retrogrades ask you to turn inward and review rather than charge forward.\n\n`;
+      response += `This is a pull-back-and-reassess energy, not a charge-forward one.\n\n`;
     }
   }
 
-  // Personal transits from chart
   if (topAspects.length > 0) {
-    response += `**What this means for your chart specifically:**\n\n`;
-    for (const a of topAspects) {
-      const interp = getAspectInterpretation(a.transitPlanet, a.aspect.name, a.natalPlanet);
-      const symbol = a.aspect.symbol;
-      response += `✦ **${capitalize(a.transitPlanet)} ${symbol} your natal ${capitalize(a.natalPlanet)}** — ${interp}\n\n`;
+    response += `**${activeRetrogrades.length > 0 ? 3 : 2}. Your Chart Specifically**\n`;
+    const a = topAspects[0];
+    const interp = getAspectInterpretation(a.transitPlanet, a.aspect.name, a.natalPlanet);
+    response += `**Impact:** ${capitalize(a.transitPlanet)} ${a.aspect.symbol} your natal ${capitalize(a.natalPlanet)} — ${interp}\n\n`;
+
+    if (topAspects.length > 1) {
+      const extras = topAspects.slice(1).map(a2 => {
+        const i2 = getAspectInterpretation(a2.transitPlanet, a2.aspect.name, a2.natalPlanet);
+        return `${capitalize(a2.transitPlanet)} ${a2.aspect.symbol} natal ${capitalize(a2.natalPlanet)}: ${i2}`;
+      });
+      response += extras.map(e => `✦ ${e}`).join('\n') + '\n\n';
     }
+
+    const nature = topAspects[0].aspect.nature;
+    response += `**Advice:** ${
+      nature === 'harmonious' ? `Lean into this — it\'s one of the easier windows you\'ll get for a while. Move on things that matter.` :
+      nature === 'tense'      ? `Don\'t force outcomes right now. The friction is real but it\'s also useful — it\'s showing you exactly where the pressure points are.` :
+                                `Stay aware. This is a defining moment, not just background noise.`
+    }\n\n`;
+
+    response += `**Verdict:** ${intensity >= 70 ? `High-activity window — the sky is talking directly to your chart.` : intensity >= 45 ? `Moderate activation — worth paying attention but not a crisis.` : `Low pressure period — use the quiet intentionally.`}\n\n`;
   } else {
-    // General reading when no tight aspects
     const weather = DAILY_COSMIC_WEATHER[Math.floor(Math.random() * DAILY_COSMIC_WEATHER.length)];
-    response += `The skies aren't pressing hard on any single point in your chart right now — this is a relatively open window. ${weather}\n\n`;
+    const sectionNum = activeRetrogrades.length > 0 ? 3 : 2;
+    response += `**${sectionNum}. Your Chart Specifically**\n`;
+    response += `**Impact:** No tight transits are hitting your personal planets right now.\n\n`;
+    response += `**Advice:** ${weather} Use this open window deliberately — the absence of pressure is actually a gift.\n\n`;
+    response += `**Verdict:** Quiet skies. Forward motion is available, but you have to initiate it.\n\n`;
   }
 
+  response += `**Intensity: ${intensity}/100**\n\n`;
+  response += pickFollowUp('transit', sunSign);
   return response;
 }
 
 function buildBirthChartSummary(natalPositions, userData) {
-  let response = `Here's the essence of your natal chart, ${userData.name}.\n\n`;
-
-  const sun = natalPositions.sun;
-  const moon = natalPositions.moon;
+  const sun    = natalPositions.sun;
+  const moon   = natalPositions.moon;
   const rising = natalPositions.ascendant;
+  const venus  = natalPositions.venus;
+  const mars   = natalPositions.mars;
 
+  let response = `**1. Your Core Identity**\n`;
   if (sun) {
-    response += `✦ **Sun in ${sun.sign.name}** ${getSignEmoji(sun.sign.name)} — ${getPlanetInSignInterpretation('sun', sun.sign.name)}\n\n`;
+    response += `**Vibe:** Sun in ${sun.sign.name} ${getSignEmoji(sun.sign.name)} — ${getPlanetInSignInterpretation('sun', sun.sign.name)}\n\n`;
   }
+
+  response += `**2. Your Emotional World**\n`;
   if (moon) {
-    response += `✦ **Moon in ${moon.sign.name}** ${getSignEmoji(moon.sign.name)} — ${getPlanetInSignInterpretation('moon', moon.sign.name)}\n\n`;
+    response += `**Impact:** Moon in ${moon.sign.name} ${getSignEmoji(moon.sign.name)} — ${getPlanetInSignInterpretation('moon', moon.sign.name)}\n\n`;
   }
+
   if (rising) {
-    response += `✦ **Rising in ${rising.sign.name}** ${getSignEmoji(rising.sign.name)} — Your rising sign is the mask you wear and the first impression you make on the world.\n\n`;
+    response += `**3. How the World Sees You**\n`;
+    response += `**Vibe:** Rising in ${rising.sign.name} ${getSignEmoji(rising.sign.name)} — you come across as ${getRisingDescription(rising.sign.name)}.\n\n`;
   }
 
-  response += `Your Venus in ${natalPositions.venus?.sign?.name || '—'} shapes how you love, and your Mars in ${natalPositions.mars?.sign?.name || '—'} drives how you act. Want me to go deeper on any of these, or shall we look at what the current transits are activating in your chart?`;
+  response += `**4. Love & Drive**\n`;
+  response += `**Impact:** Venus in ${venus?.sign?.name || '—'} is how you love. Mars in ${mars?.sign?.name || '—'} is how you act. That combination is the engine under everything you do.\n\n`;
 
+  response += `**Advice:** Your Sun and Moon ${sun && moon && sun.sign.name === moon.sign.name ? `are in the same sign — your public self and inner world are unusually aligned. That\'s rare.` : `are pulling in different directions sometimes, and that tension is actually where your growth lives.`}\n\n`;
+
+  response += `**Verdict:** This is a chart that ${sun?.sign?.element === 'Fire' ? `moves fast and asks questions later` : sun?.sign?.element === 'Earth' ? `builds slow and lasts long` : sun?.sign?.element === 'Air' ? `thinks first, feels second` : `feels everything, whether it wants to or not`}.\n\n`;
+
+  response += pickFollowUp('birthchart', sun?.sign?.name);
   return response;
 }
 
@@ -185,25 +227,31 @@ function buildRetrogradeSummary(targetDate) {
   const activeNow = Object.keys(PLANETS).filter(p => isRetrograde(p, today));
   const upcoming = getRetrogrades(today, endDate).filter(r => r.start > today);
 
-  let response = `**Retrograde Landscape**\n\n`;
+  let response = `**1. Right Now**\n`;
 
   if (activeNow.length > 0) {
-    response += `Currently retrograde: **${activeNow.map(capitalize).join(', ')}**\n\n`;
+    response += `**Vibe:** ${activeNow.map(capitalize).join(' and ')} ${activeNow.length === 1 ? 'is' : 'are'} retrograde — the sky is asking you to slow down in specific areas.\n\n`;
     for (const planet of activeNow) {
       const meaning = getRetrogradeMeaning(planet);
-      response += `✦ **${capitalize(planet)} Retrograde** — ${meaning.general}\n\n`;
+      response += `✦ **${capitalize(planet)} Rx** — ${meaning.general}\n\n`;
     }
   } else {
-    response += `No major planets are retrograde right now — a relatively clear window for forward motion.\n\n`;
+    response += `**Vibe:** No major planets retrograde right now. That\'s genuinely unusual — a clean window for forward motion.\n\n`;
   }
 
   if (upcoming.length > 0) {
-    response += `**Coming up in the next 90 days:**\n\n`;
+    response += `**2. Coming Up (next 90 days)**\n`;
+    response += `**Impact:** ${upcoming.length} retrograde period${upcoming.length > 1 ? 's' : ''} incoming — worth knowing about before they hit.\n\n`;
     for (const r of upcoming.slice(0, 3)) {
-      response += `✦ **${capitalize(r.planet)} goes retrograde** in ${r.sign} on ${formatDate(r.start)} — ${getRetrogradeMeaning(r.planet).themes.slice(0, 2).join(', ')}.\n\n`;
+      response += `✦ **${capitalize(r.planet)} goes Rx** in ${r.sign} on ${formatDate(r.start)} — themes: ${getRetrogradeMeaning(r.planet).themes.slice(0, 2).join(', ')}.\n\n`;
     }
+    response += `**Advice:** The window before a retrograde station is often the most useful — finish what you\'re starting, and don\'t kick off anything you can\'t pause mid-stream.\n\n`;
   }
 
+  const hasMercury = activeNow.includes('mercury') || upcoming.some(r => r.planet === 'mercury');
+  response += `**Verdict:** ${hasMercury ? `Mercury is in the picture — communication, travel, and tech are the live wires right now. Double-check everything.` : activeNow.length === 0 ? `Unusually clear sky. This kind of window doesn\'t last long — use it.` : `Outer planet retrogrades are long and slow. They\'re background pressure, not emergencies.`}\n\n`;
+
+  response += pickFollowUp('retrograde');
   return response;
 }
 
@@ -222,38 +270,101 @@ function buildTopicResponse(topic, natalPositions, targetDate) {
     topicPlanets[topic]?.includes(a.transitPlanet)
   ).slice(0, 3);
 
-  const topicIntros = {
-    love:   `Looking at love and relationships in your chart right now`,
-    career: `On the career and ambition front`,
-    health: `Around your energy and physical wellbeing`,
+  const topicTitles = {
+    love:   'Love & Relationships',
+    career: 'Career & Ambition',
+    health: 'Energy & Wellbeing',
   };
 
-  let response = `${topicIntros[topic] || 'Looking at this area of your chart'}:\n\n`;
+  const intensity = calcIntensity(relevant, []);
+
+  let response = `**1. ${topicTitles[topic] || 'This Area of Your Chart'} Right Now**\n`;
 
   if (relevant.length > 0) {
-    for (const a of relevant) {
-      const interp = getAspectInterpretation(a.transitPlanet, a.aspect.name, a.natalPlanet);
-      response += `✦ **${capitalize(a.transitPlanet)} ${a.aspect.symbol} your natal ${capitalize(a.natalPlanet)}** — ${interp}\n\n`;
+    const first = relevant[0];
+    const firstInterp = getAspectInterpretation(first.transitPlanet, first.aspect.name, first.natalPlanet);
+    response += `**Vibe:** ${capitalize(first.transitPlanet)} ${first.aspect.symbol} your natal ${capitalize(first.natalPlanet)} — ${firstInterp}\n\n`;
+
+    if (relevant.length > 1) {
+      response += `**2. Supporting Influences**\n`;
+      for (const a of relevant.slice(1)) {
+        const interp = getAspectInterpretation(a.transitPlanet, a.aspect.name, a.natalPlanet);
+        response += `✦ ${capitalize(a.transitPlanet)} ${a.aspect.symbol} natal ${capitalize(a.natalPlanet)} — ${interp}\n\n`;
+      }
     }
+
+    const dominant = relevant[0].aspect.nature;
+    response += `**Advice:** ${
+      topic === 'love'   && dominant === 'harmonious' ? `This is a genuinely good window for connection — don\'t overthink it, just show up.` :
+      topic === 'love'   && dominant === 'tense'      ? `Tension in relationships right now is information, not a verdict. Ask what it\'s pointing at.` :
+      topic === 'career' && dominant === 'harmonious' ? `Put yourself forward. The timing supports recognition and progress.` :
+      topic === 'career' && dominant === 'tense'      ? `Pressure at work is real but productive. Push through, don\'t avoid.` :
+      topic === 'health' && dominant === 'tense'      ? `Your energy levels are probably uneven right now. Work with that, not against it.` :
+      `Stay intentional in this area — the planets are paying attention to it.`
+    }\n\n`;
   } else {
-    const venusSigns = natalPositions.venus?.sign?.name;
-    response += `Your Venus in ${venusSigns || 'your chart'} shapes this area deeply. The transits aren't pressing on this part of your chart with great urgency right now — which can actually mean steady ground to work from rather than reactive energy.\n\n`;
+    const anchor = topic === 'love' ? `Venus in ${natalPositions.venus?.sign?.name || 'your chart'}` :
+                   topic === 'career' ? `Saturn and your natal Sun` : `Mars in your chart`;
+    response += `**Vibe:** No tight transits hitting this area right now.\n\n`;
+    response += `**Impact:** ${anchor} is the baseline shaping this, but the sky isn\'t actively pushing or pulling on it. That\'s neutral, not bad.\n\n`;
+    response += `**Advice:** Steady ground to build from. Initiate rather than wait.\n\n`;
   }
 
+  response += `**Verdict:** ${intensity >= 60 ? `The planets are loud on this topic right now — take the signals seriously.` : `Moderate energy here. Not urgent, but not invisible either.`}\n\n`;
+  response += `**Intensity: ${intensity}/100**\n\n`;
+  response += pickFollowUp(topic);
   return response;
+}
+
+const FOLLOW_UPS = {
+  transit:    [
+    'Want me to zoom in on any of those aspects specifically, or look at a different date?',
+    'Is there a particular area of life — love, career, health — you want me to filter this through?',
+    'Anything coming up in the next few weeks you want me to look at more closely?',
+  ],
+  birthchart: [
+    'Want to go deeper on any of those placements — or see how the current sky is activating your chart right now?',
+    'Should I look at what transits are hitting your chart this month?',
+    'Want me to break down your Venus or Mars placement in more detail?',
+  ],
+  retrograde: [
+    'Want me to look at how any of these retrogrades are specifically hitting your natal chart?',
+    'Is there a particular planet you want to understand better?',
+    'Should I pull up what the sky looks like for a specific date during one of these periods?',
+  ],
+  love: [
+    'Want me to look at a specific date or window for your love life?',
+    'Should I check what Venus and Mars are doing in your chart long-term?',
+    'Is there a specific situation or question you want me to read against your chart?',
+  ],
+  career: [
+    'Want me to look at a specific date or window for career moves?',
+    'Should I check what Jupiter is doing in your chart — that\'s your expansion and opportunity planet?',
+    'Is there a deadline or opportunity coming up you want me to look at?',
+  ],
+  health: [
+    'Want me to look at your energy levels over a specific period?',
+    'Should I check Mars transits — that\'s your physical drive and stamina planet?',
+    'Is there a particular period you\'re worried about or preparing for?',
+  ],
+};
+
+function pickFollowUp(type, context) {
+  const pool = FOLLOW_UPS[type] || FOLLOW_UPS.transit;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 // Greeting responses
 const GREETINGS = [
-  (name) => `Hello ${name} ✦ The stars are listening. What would you like to explore — a specific date, a life area, or your chart as a whole?`,
-  (name) => `Welcome back, ${name}. The sky is always in motion. Shall we look at what it's doing for you right now, or is there a specific period on your mind?`,
-  (name) => `${name} ✦ I'm here. What are you wanting clarity on — a date, a theme, or something you're currently navigating?`,
+  (name) => `Hey ${name}. I've got your chart loaded and the sky in real time — what do you want to look at? A specific date, a life area, or your chart as a whole?`,
+  (name) => `${name}. The sky's been busy — where do you want to start? I can look at a specific date, a period, or zoom in on love, career, or anything else.`,
+  (name) => `Good to hear from you, ${name}. What are we looking at — something coming up, something you\'re in the middle of, or just the general vibe right now?`,
 ];
 
 const THANKS_RESPONSES = [
-  "Always here when you need to read the sky. ✦",
-  "The cosmos doesn't stop moving — come back whenever you need a read.",
-  "Take what resonates, leave the rest. ✦ The stars are patient.",
+  "Glad it was useful. Come back when the sky moves again — it always does.",
+  "Any time. The chart doesn't change, but the transits never stop.",
+  "That's what I'm here for. What else do you want to look at?",
 ];
 
 function generateResponse(message, userData, natalPositions) {
@@ -272,7 +383,7 @@ function generateResponse(message, userData, natalPositions) {
 
   // What can you do
   if (msg.match(/what can you|what do you do|help|capabilities/)) {
-    return `I can read the sky for you, ${userData.name}.\n\nAsk me about:\n✦ **A specific date** — "How does 14 June look for me?"\n✦ **A time period** — "What's this month looking like?"\n✦ **A life area** — "What do the planets say about my love life right now?"\n✦ **Your birth chart** — "Tell me about my natal chart"\n✦ **Retrogrades** — "What retrogrades are coming?"\n✦ **Past periods** — "Why was last March so intense?"\n\nI use your exact birth chart against real planetary positions — no generic readings here.`;
+    return `Here's what I can do, ${userData.name}:\n\n**1. Specific dates** — "How does 14 June look for me?"\n**2. Time periods** — "What's this month looking like?"\n**3. Life areas** — "What's the sky saying about my love life right now?"\n**4. Your birth chart** — "Walk me through my natal chart"\n**5. Retrogrades** — "What retrogrades are coming up?"\n**6. Past periods** — "Why was last March so rough?"\n\nEverything is read against your exact birth chart — not generic sun sign stuff.\n\nWhat do you want to start with?`;
   }
 
   const intent = parseIntent(message);
@@ -282,8 +393,10 @@ function generateResponse(message, userData, natalPositions) {
     if (intent.topic === 'birthchart') return buildBirthChartSummary(natalPositions, userData);
     if (intent.topic === 'rising') {
       const rising = natalPositions.ascendant;
-      if (rising) return `Your Rising sign is **${rising.sign.name}** ${getSignEmoji(rising.sign.name)}. This is the mask you present to the world — your first impression, your physical appearance, how others experience you before they know you. Your ${rising.sign.name} rising means you come across as ${getRisingDescription(rising.sign.name)}.`;
-      return `Your Rising sign depends on your exact birth time and location. If you entered those in your profile, it's already in your chart — tap the Chart tab to see it.`;
+      if (rising) {
+        return `**1. Your Rising Sign**\n**Vibe:** ${rising.sign.name} ${getSignEmoji(rising.sign.name)} rising — you come across as ${getRisingDescription(rising.sign.name)}.\n\n**Impact:** The Rising sign is your social mask — the first impression you make before people know you. It shapes your appearance, your instinctive reactions, and how the world receives you.\n\n**Verdict:** Your ${rising.sign.name} rising and your inner chart might feel like different people sometimes. That gap is actually useful — it gives you range.\n\nWant me to look at how transits are currently hitting your Rising, or go deeper on another placement?`;
+      }
+      return `Your Rising sign needs your exact birth time and location to calculate. If you added those in your profile it\'s already in your chart — check the Chart tab. Want me to walk through what a Rising sign actually means while you dig that up?`;
     }
     return buildTopicResponse(intent.topic, natalPositions, intent.date || new Date());
   }
